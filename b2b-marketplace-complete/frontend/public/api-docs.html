@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Documentation | B2B Marketplace</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-primary: #0D1117;
+            --bg-secondary: #161B22;
+            --bg-tertiary: #21262D;
+            --border-color: #30363D;
+            --text-primary: #F0F6FC;
+            --text-secondary: #8B949E;
+            --text-muted: #6E7681;
+            --accent-blue: #58A6FF;
+            --accent-green: #3FB950;
+            --accent-purple: #A371F7;
+            --accent-orange: #F0883E;
+            --accent-red: #F85149;
+            --accent-yellow: #D29922;
+            --font-sans: 'Be Vietnam Pro', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* Layout */
+        .docs-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr 260px;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            padding: 24px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 32px;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .sidebar-logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            font-weight: 800;
+        }
+
+        .sidebar-search {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.9rem;
+            margin-bottom: 24px;
+        }
+
+        .sidebar-search:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        .nav-section {
+            margin-bottom: 24px;
+        }
+
+        .nav-section-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+
+        .nav-list {
+            list-style: none;
+        }
+
+        .nav-item a {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .nav-item a:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active a {
+            background: rgba(88, 166, 255, 0.1);
+            color: var(--accent-blue);
+        }
+
+        .method-badge {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .method-get { background: rgba(63, 185, 80, 0.2); color: var(--accent-green); }
+        .method-post { background: rgba(88, 166, 255, 0.2); color: var(--accent-blue); }
+        .method-put { background: rgba(240, 136, 62, 0.2); color: var(--accent-orange); }
+        .method-delete { background: rgba(248, 81, 73, 0.2); color: var(--accent-red); }
+
+        /* Main Content */
+        .main-content {
+            padding: 48px 64px;
+            max-width: 900px;
+        }
+
+        .content-header {
+            margin-bottom: 48px;
+        }
+
+        .content-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .content-description {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+        }
+
+        /* Endpoint Section */
+        .endpoint-section {
+            margin-bottom: 64px;
+            padding-bottom: 48px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .endpoint-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .endpoint-method {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 6px;
+        }
+
+        .endpoint-path {
+            font-family: var(--font-mono);
+            font-size: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .endpoint-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .endpoint-description {
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+
+        /* Code Block */
+        .code-block {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .code-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .code-tabs {
+            display: flex;
+            gap: 4px;
+        }
+
+        .code-tab {
+            padding: 6px 12px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-family: var(--font-sans);
+            font-size: 0.85rem;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .code-tab:hover {
+            background: var(--bg-secondary);
+        }
+
+        .code-tab.active {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .code-copy {
+            padding: 6px 12px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .code-copy:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .code-content {
+            padding: 20px;
+            overflow-x: auto;
+        }
+
+        .code-content pre {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            line-height: 1.7;
+            margin: 0;
+        }
+
+        /* Syntax Highlighting */
+        .token-keyword { color: var(--accent-purple); }
+        .token-string { color: var(--accent-green); }
+        .token-number { color: var(--accent-orange); }
+        .token-property { color: var(--accent-blue); }
+        .token-comment { color: var(--text-muted); font-style: italic; }
+
+        /* Parameters Table */
+        .params-section {
+            margin-bottom: 24px;
+        }
+
+        .params-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .params-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .params-table th {
+            text-align: left;
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .params-table td {
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            vertical-align: top;
+        }
+
+        .param-name {
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            color: var(--accent-blue);
+        }
+
+        .param-type {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--accent-purple);
+            background: rgba(163, 113, 247, 0.1);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .param-required {
+            font-size: 0.75rem;
+            color: var(--accent-red);
+            font-weight: 600;
+        }
+
+        .param-optional {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .param-description {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* Response Section */
+        .response-section {
+            margin-bottom: 24px;
+        }
+
+        .response-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .response-status.success {
+            background: rgba(63, 185, 80, 0.1);
+            color: var(--accent-green);
+        }
+
+        .response-status.error {
+            background: rgba(248, 81, 73, 0.1);
+            color: var(--accent-red);
+        }
+
+        /* Right Sidebar - TOC */
+        .toc-sidebar {
+            padding: 48px 24px;
+            border-left: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .toc-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+        }
+
+        .toc-list {
+            list-style: none;
+        }
+
+        .toc-item a {
+            display: block;
+            padding: 6px 0;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: color 0.2s;
+        }
+
+        .toc-item a:hover {
+            color: var(--text-primary);
+        }
+
+        .toc-item.active a {
+            color: var(--accent-blue);
+        }
+
+        /* Try It Out Panel */
+        .try-it-panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-top: 24px;
+            overflow: hidden;
+        }
+
+        .try-it-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .try-it-title {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .try-it-body {
+            padding: 20px;
+        }
+
+        .try-it-field {
+            margin-bottom: 16px;
+        }
+
+        .try-it-label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .try-it-input {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+        }
+
+        .try-it-input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        .try-it-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent-blue);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .try-it-btn:hover {
+            background: #4393E4;
+        }
+
+        .try-it-response {
+            margin-top: 16px;
+            padding: 16px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        /* Alert Boxes */
+        .alert {
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .alert-info {
+            background: rgba(88, 166, 255, 0.1);
+            border: 1px solid rgba(88, 166, 255, 0.3);
+        }
+
+        .alert-warning {
+            background: rgba(210, 153, 34, 0.1);
+            border: 1px solid rgba(210, 153, 34, 0.3);
+        }
+
+        .alert-icon {
+            font-size: 1.2rem;
+        }
+
+        .alert-content {
+            flex: 1;
+        }
+
+        .alert-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .alert-text {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .docs-layout {
+                grid-template-columns: 260px 1fr;
+            }
+
+            .toc-sidebar {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .docs-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .main-content {
+                padding: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="docs-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <a href="/" class="sidebar-logo">
+                <div class="sidebar-logo-icon">B2</div>
+                <span>API Docs</span>
+            </a>
+
+            <input type="text" class="sidebar-search" placeholder="Search..." id="searchInput">
+
+            <nav>
+                <div class="nav-section">
+                    <div class="nav-section-title">Getting Started</div>
+                    <ul class="nav-list">
+                        <li class="nav-item active"><a href="#introduction">Introduction</a></li>
+                        <li class="nav-item"><a href="#authentication">Authentication</a></li>
+                        <li class="nav-item"><a href="#errors">Error Handling</a></li>
+                        <li class="nav-item"><a href="#rate-limits">Rate Limits</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Authentication</div>
+                    <ul class="nav-list">
+                        <li class="nav-item">
+                            <a href="#auth-register">
+                                <span class="method-badge method-post">POST</span>
+                                Register
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#auth-login">
+                                <span class="method-badge method-post">POST</span>
+                                Login
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#auth-refresh">
+                                <span class="method-badge method-post">POST</span>
+                                Refresh Token
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#auth-me">
+                                <span class="method-badge method-get">GET</span>
+                                Get Current User
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Suppliers</div>
+                    <ul class="nav-list">
+                        <li class="nav-item">
+                            <a href="#suppliers-list">
+                                <span class="method-badge method-get">GET</span>
+                                List Suppliers
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#suppliers-get">
+                                <span class="method-badge method-get">GET</span>
+                                Get Supplier
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#suppliers-update">
+                                <span class="method-badge method-put">PUT</span>
+                                Update Supplier
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Products</div>
+                    <ul class="nav-list">
+                        <li class="nav-item">
+                            <a href="#products-list">
+                                <span class="method-badge method-get">GET</span>
+                                List Products
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#products-create">
+                                <span class="method-badge method-post">POST</span>
+                                Create Product
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#products-update">
+                                <span class="method-badge method-put">PUT</span>
+                                Update Product
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#products-delete">
+                                <span class="method-badge method-delete">DEL</span>
+                                Delete Product
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Negotiations</div>
+                    <ul class="nav-list">
+                        <li class="nav-item">
+                            <a href="#negotiations-list">
+                                <span class="method-badge method-get">GET</span>
+                                List Negotiations
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#negotiations-create">
+                                <span class="method-badge method-post">POST</span>
+                                Create Negotiation
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#negotiations-message">
+                                <span class="method-badge method-post">POST</span>
+                                Send Message
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Purchase Intents</div>
+                    <ul class="nav-list">
+                        <li class="nav-item">
+                            <a href="#intents-list">
+                                <span class="method-badge method-get">GET</span>
+                                List Intents
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#intents-create">
+                                <span class="method-badge method-post">POST</span>
+                                Create Intent
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="content-header" id="introduction">
+                <h1 class="content-title">B2B Marketplace API</h1>
+                <p class="content-description">
+                    RESTful API cho nền tảng B2B Marketplace. Tích hợp với hệ thống của bạn để quản lý 
+                    nhà cung cấp, sản phẩm, đàm phán và đơn hàng.
+                </p>
+            </header>
+
+            <!-- Base URL -->
+            <div class="alert alert-info">
+                <span class="alert-icon">ℹ️</span>
+                <div class="alert-content">
+                    <div class="alert-title">Base URL</div>
+                    <div class="alert-text">
+                        <code>https://api.b2bmarket.vn/api</code> (Production)<br>
+                        <code>http://localhost:3001/api</code> (Development)
+                    </div>
+                </div>
+            </div>
+
+            <!-- Authentication Section -->
+            <section class="endpoint-section" id="authentication">
+                <h2 class="endpoint-title">Authentication</h2>
+                <p class="endpoint-description">
+                    API sử dụng JWT (JSON Web Tokens) để xác thực. Mỗi request cần có header 
+                    <code>Authorization: Bearer &lt;token&gt;</code>.
+                </p>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <div class="code-tabs">
+                            <button class="code-tab active">cURL</button>
+                            <button class="code-tab">JavaScript</button>
+                            <button class="code-tab">Python</button>
+                        </div>
+                        <button class="code-copy">Copy</button>
+                    </div>
+                    <div class="code-content">
+<pre><span class="token-comment"># Include token in Authorization header</span>
+curl -X GET https://api.b2bmarket.vn/api/auth/me \
+  -H <span class="token-string">"Authorization: Bearer eyJhbGciOiJIUzI1NiIs..."</span> \
+  -H <span class="token-string">"Content-Type: application/json"</span></pre>
+                    </div>
+                </div>
+
+                <div class="alert alert-warning">
+                    <span class="alert-icon">⚠️</span>
+                    <div class="alert-content">
+                        <div class="alert-title">Token Expiration</div>
+                        <div class="alert-text">
+                            Access token hết hạn sau 15 phút. Sử dụng refresh token để lấy token mới.
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Login Endpoint -->
+            <section class="endpoint-section" id="auth-login">
+                <div class="endpoint-header">
+                    <span class="endpoint-method method-post">POST</span>
+                    <span class="endpoint-path">/auth/login</span>
+                </div>
+                <h3 class="endpoint-title">Login</h3>
+                <p class="endpoint-description">
+                    Đăng nhập và nhận access token + refresh token.
+                </p>
+
+                <div class="params-section">
+                    <h4 class="params-title">📥 Request Body</h4>
+                    <table class="params-table">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <span class="param-name">email</span>
+                                    <span class="param-required">required</span>
+                                </td>
+                                <td><span class="param-type">string</span></td>
+                                <td class="param-description">Email đăng nhập</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <span class="param-name">password</span>
+                                    <span class="param-required">required</span>
+                                </td>
+                                <td><span class="param-type">string</span></td>
+                                <td class="param-description">Mật khẩu (min 8 ký tự)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <div class="code-tabs">
+                            <button class="code-tab active" data-lang="curl">cURL</button>
+                            <button class="code-tab" data-lang="js">JavaScript</button>
+                            <button class="code-tab" data-lang="python">Python</button>
+                        </div>
+                        <button class="code-copy">Copy</button>
+                    </div>
+                    <div class="code-content" data-lang="curl">
+<pre>curl -X POST https://api.b2bmarket.vn/api/auth/login \
+  -H <span class="token-string">"Content-Type: application/json"</span> \
+  -d <span class="token-string">'{
+    "email": "user@example.com",
+    "password": "YourPassword123"
+  }'</span></pre>
+                    </div>
+                    <div class="code-content" data-lang="js" style="display:none">
+<pre><span class="token-keyword">const</span> response = <span class="token-keyword">await</span> fetch(<span class="token-string">'https://api.b2bmarket.vn/api/auth/login'</span>, {
+  method: <span class="token-string">'POST'</span>,
+  headers: {
+    <span class="token-string">'Content-Type'</span>: <span class="token-string">'application/json'</span>
+  },
+  body: JSON.stringify({
+    email: <span class="token-string">'user@example.com'</span>,
+    password: <span class="token-string">'YourPassword123'</span>
+  })
+});
+
+<span class="token-keyword">const</span> data = <span class="token-keyword">await</span> response.json();
+console.log(data.data.accessToken);</pre>
+                    </div>
+                    <div class="code-content" data-lang="python" style="display:none">
+<pre><span class="token-keyword">import</span> requests
+
+response = requests.post(
+    <span class="token-string">'https://api.b2bmarket.vn/api/auth/login'</span>,
+    json={
+        <span class="token-string">'email'</span>: <span class="token-string">'user@example.com'</span>,
+        <span class="token-string">'password'</span>: <span class="token-string">'YourPassword123'</span>
+    }
+)
+
+data = response.json()
+<span class="token-keyword">print</span>(data[<span class="token-string">'data'</span>][<span class="token-string">'accessToken'</span>])</pre>
+                    </div>
+                </div>
+
+                <div class="response-section">
+                    <span class="response-status success">200 OK</span>
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span>Response</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="token-property">"success"</span>: <span class="token-keyword">true</span>,
+  <span class="token-property">"data"</span>: {
+    <span class="token-property">"user"</span>: {
+      <span class="token-property">"id"</span>: <span class="token-string">"uuid-here"</span>,
+      <span class="token-property">"email"</span>: <span class="token-string">"user@example.com"</span>,
+      <span class="token-property">"role"</span>: <span class="token-string">"SUPPLIER"</span>,
+      <span class="token-property">"emailVerified"</span>: <span class="token-keyword">true</span>
+    },
+    <span class="token-property">"accessToken"</span>: <span class="token-string">"eyJhbGciOiJIUzI1NiIs..."</span>,
+    <span class="token-property">"refreshToken"</span>: <span class="token-string">"eyJhbGciOiJIUzI1NiIs..."</span>
+  }
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Try It Out -->
+                <div class="try-it-panel">
+                    <div class="try-it-header">
+                        <div class="try-it-title">🧪 Try It Out</div>
+                    </div>
+                    <div class="try-it-body">
+                        <div class="try-it-field">
+                            <label class="try-it-label">Email</label>
+                            <input type="email" class="try-it-input" id="tryEmail" value="supplier@techcorp.com">
+                        </div>
+                        <div class="try-it-field">
+                            <label class="try-it-label">Password</label>
+                            <input type="password" class="try-it-input" id="tryPassword" value="Supplier123!@#">
+                        </div>
+                        <button class="try-it-btn" onclick="tryLogin()">Send Request</button>
+                        <div class="try-it-response" id="loginResponse" style="display:none"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- List Products -->
+            <section class="endpoint-section" id="products-list">
+                <div class="endpoint-header">
+                    <span class="endpoint-method method-get">GET</span>
+                    <span class="endpoint-path">/products</span>
+                </div>
+                <h3 class="endpoint-title">List Products</h3>
+                <p class="endpoint-description">
+                    Lấy danh sách sản phẩm với phân trang và bộ lọc.
+                </p>
+
+                <div class="params-section">
+                    <h4 class="params-title">📝 Query Parameters</h4>
+                    <table class="params-table">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <span class="param-name">page</span>
+                                    <span class="param-optional">optional</span>
+                                </td>
+                                <td><span class="param-type">integer</span></td>
+                                <td class="param-description">Số trang (default: 1)</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <span class="param-name">limit</span>
+                                    <span class="param-optional">optional</span>
+                                </td>
+                                <td><span class="param-type">integer</span></td>
+                                <td class="param-description">Số item mỗi trang (default: 20, max: 100)</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <span class="param-name">categoryId</span>
+                                    <span class="param-optional">optional</span>
+                                </td>
+                                <td><span class="param-type">uuid</span></td>
+                                <td class="param-description">Lọc theo danh mục</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <span class="param-name">minPrice</span>
+                                    <span class="param-optional">optional</span>
+                                </td>
+                                <td><span class="param-type">number</span></td>
+                                <td class="param-description">Giá tối thiểu</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <span class="param-name">maxPrice</span>
+                                    <span class="param-optional">optional</span>
+                                </td>
+                                <td><span class="param-type">number</span></td>
+                                <td class="param-description">Giá tối đa</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <span class="param-name">search</span>
+                                    <span class="param-optional">optional</span>
+                                </td>
+                                <td><span class="param-type">string</span></td>
+                                <td class="param-description">Tìm kiếm theo tên, mô tả</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <div class="code-tabs">
+                            <button class="code-tab active">cURL</button>
+                            <button class="code-tab">JavaScript</button>
+                            <button class="code-tab">Python</button>
+                        </div>
+                        <button class="code-copy">Copy</button>
+                    </div>
+                    <div class="code-content">
+<pre>curl -X GET <span class="token-string">"https://api.b2bmarket.vn/api/products?page=1&limit=20&search=phone"</span> \
+  -H <span class="token-string">"Authorization: Bearer YOUR_TOKEN"</span></pre>
+                    </div>
+                </div>
+
+                <div class="response-section">
+                    <span class="response-status success">200 OK</span>
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span>Response</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="token-property">"success"</span>: <span class="token-keyword">true</span>,
+  <span class="token-property">"data"</span>: [
+    {
+      <span class="token-property">"id"</span>: <span class="token-string">"prod-uuid"</span>,
+      <span class="token-property">"name"</span>: <span class="token-string">"Smartphone Pro X1"</span>,
+      <span class="token-property">"sku"</span>: <span class="token-string">"SP-001"</span>,
+      <span class="token-property">"basePrice"</span>: <span class="token-number">599.99</span>,
+      <span class="token-property">"currency"</span>: <span class="token-string">"USD"</span>,
+      <span class="token-property">"moq"</span>: <span class="token-number">10</span>,
+      <span class="token-property">"supplier"</span>: {
+        <span class="token-property">"id"</span>: <span class="token-string">"supp-uuid"</span>,
+        <span class="token-property">"companyName"</span>: <span class="token-string">"TechCorp"</span>
+      }
+    }
+  ],
+  <span class="token-property">"pagination"</span>: {
+    <span class="token-property">"page"</span>: <span class="token-number">1</span>,
+    <span class="token-property">"limit"</span>: <span class="token-number">20</span>,
+    <span class="token-property">"total"</span>: <span class="token-number">150</span>,
+    <span class="token-property">"totalPages"</span>: <span class="token-number">8</span>
+  }
+}</pre>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Error Codes -->
+            <section class="endpoint-section" id="errors">
+                <h2 class="endpoint-title">Error Handling</h2>
+                <p class="endpoint-description">
+                    API trả về error response với format thống nhất.
+                </p>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span>Error Response Format</span>
+                    </div>
+                    <div class="code-content">
+<pre>{
+  <span class="token-property">"success"</span>: <span class="token-keyword">false</span>,
+  <span class="token-property">"error"</span>: {
+    <span class="token-property">"code"</span>: <span class="token-string">"VALIDATION_ERROR"</span>,
+    <span class="token-property">"message"</span>: <span class="token-string">"Invalid input data"</span>,
+    <span class="token-property">"details"</span>: {
+      <span class="token-property">"email"</span>: <span class="token-string">"Invalid email format"</span>
+    }
+  }
+}</pre>
+                    </div>
+                </div>
+
+                <div class="params-section">
+                    <h4 class="params-title">HTTP Status Codes</h4>
+                    <table class="params-table">
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="param-type">200</span></td>
+                                <td>Success</td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-type">201</span></td>
+                                <td>Created successfully</td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-type">400</span></td>
+                                <td>Bad Request - Invalid input</td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-type">401</span></td>
+                                <td>Unauthorized - Invalid/missing token</td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-type">403</span></td>
+                                <td>Forbidden - Insufficient permissions</td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-type">404</span></td>
+                                <td>Not Found</td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-type">429</span></td>
+                                <td>Too Many Requests - Rate limited</td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-type">500</span></td>
+                                <td>Internal Server Error</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Rate Limits -->
+            <section class="endpoint-section" id="rate-limits">
+                <h2 class="endpoint-title">Rate Limits</h2>
+                <p class="endpoint-description">
+                    API có giới hạn số request để đảm bảo ổn định hệ thống.
+                </p>
+
+                <div class="params-section">
+                    <table class="params-table">
+                        <thead>
+                            <tr>
+                                <th>Plan</th>
+                                <th>Requests/Hour</th>
+                                <th>Requests/Day</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Free</td>
+                                <td>100</td>
+                                <td>1,000</td>
+                            </tr>
+                            <tr>
+                                <td>Professional</td>
+                                <td>1,000</td>
+                                <td>10,000</td>
+                            </tr>
+                            <tr>
+                                <td>Enterprise</td>
+                                <td>Unlimited</td>
+                                <td>Unlimited</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="alert alert-info">
+                    <span class="alert-icon">ℹ️</span>
+                    <div class="alert-content">
+                        <div class="alert-title">Rate Limit Headers</div>
+                        <div class="alert-text">
+                            Kiểm tra headers <code>X-RateLimit-Limit</code>, <code>X-RateLimit-Remaining</code>, 
+                            và <code>X-RateLimit-Reset</code> trong response.
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Table of Contents -->
+        <aside class="toc-sidebar">
+            <div class="toc-title">On This Page</div>
+            <ul class="toc-list">
+                <li class="toc-item active"><a href="#introduction">Introduction</a></li>
+                <li class="toc-item"><a href="#authentication">Authentication</a></li>
+                <li class="toc-item"><a href="#auth-login">Login</a></li>
+                <li class="toc-item"><a href="#products-list">List Products</a></li>
+                <li class="toc-item"><a href="#errors">Error Handling</a></li>
+                <li class="toc-item"><a href="#rate-limits">Rate Limits</a></li>
+            </ul>
+        </aside>
+    </div>
+
+    <script>
+        // Code tabs switching
+        document.querySelectorAll('.code-tabs').forEach(tabGroup => {
+            const tabs = tabGroup.querySelectorAll('.code-tab');
+            const codeBlock = tabGroup.closest('.code-block');
+            const contents = codeBlock.querySelectorAll('.code-content');
+
+            tabs.forEach((tab, index) => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+
+                    contents.forEach((content, i) => {
+                        content.style.display = i === index ? 'block' : 'none';
+                    });
+                });
+            });
+        });
+
+        // Copy code button
+        document.querySelectorAll('.code-copy').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const codeBlock = btn.closest('.code-block');
+                const visibleContent = codeBlock.querySelector('.code-content:not([style*="display: none"]) pre, .code-content:not([style*="display:none"]) pre');
+                
+                if (visibleContent) {
+                    navigator.clipboard.writeText(visibleContent.textContent);
+                    btn.textContent = 'Copied!';
+                    setTimeout(() => btn.textContent = 'Copy', 2000);
+                }
+            });
+        });
+
+        // Try Login function
+        async function tryLogin() {
+            const email = document.getElementById('tryEmail').value;
+            const password = document.getElementById('tryPassword').value;
+            const responseDiv = document.getElementById('loginResponse');
+
+            responseDiv.style.display = 'block';
+            responseDiv.textContent = 'Sending request...';
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                responseDiv.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                responseDiv.textContent = JSON.stringify({
+                    error: 'Request failed',
+                    message: error.message
+                }, null, 2);
+            }
+        }
+
+        // TOC active state on scroll
+        const sections = document.querySelectorAll('.endpoint-section, .content-header');
+        const tocItems = document.querySelectorAll('.toc-item');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const rect = section.getBoundingClientRect();
+                if (rect.top <= 100) {
+                    current = section.id;
+                }
+            });
+
+            tocItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.querySelector('a').getAttribute('href') === '#' + current) {
+                    item.classList.add('active');
+                }
+            });
+        });
+
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        const navItems = document.querySelectorAll('.nav-item');
+
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            
+            navItems.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(query) ? 'block' : 'none';
+            });
+        });
+    </script>
+</body>
+</html>

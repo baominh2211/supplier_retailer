@@ -1,0 +1,663 @@
+// B2B Marketplace Platform - Prisma Schema
+// Production-ready database schema with PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// ENUMERATIONS
+// ============================================
+
+enum UserRole {
+  SUPPLIER
+  SHOP
+  ADMIN
+}
+
+enum UserAccountStatus {
+  ACTIVE
+  SUSPENDED
+  BANNED
+  PENDING_EMAIL_VERIFICATION
+}
+
+enum SupplierStatus {
+  PENDING_VERIFICATION
+  VERIFIED
+  SUSPENDED
+  REJECTED
+  BANNED
+}
+
+enum NegotiationStatus {
+  INITIATED
+  PENDING_SUPPLIER_RESPONSE
+  ACTIVE
+  AWAITING_SHOP_RESPONSE
+  AWAITING_SUPPLIER_RESPONSE
+  AGREED
+  CLOSED_CANCELLED
+  CLOSED_EXPIRED
+}
+
+enum MessageType {
+  TEXT
+  PRICE_OFFER
+  COUNTER_OFFER
+  MOQ_INQUIRY
+  SHIPPING_INQUIRY
+  PAYMENT_TERMS
+  DELIVERY_DATE
+  SPECIFICATION_QUESTION
+  ATTACHMENT
+  SYSTEM_MESSAGE
+}
+
+enum ParticipantRole {
+  SHOP
+  SUPPLIER
+  SYSTEM
+}
+
+enum PurchaseIntentStatus {
+  DRAFT
+  WAITING_SUPPLIER_RESPONSE
+  NEGOTIATING
+  AGREED
+  CANCELLED
+  EXPIRED
+}
+
+// ============================================
+// USER & AUTHENTICATION
+// ============================================
+
+model User {
+  id                    String            @id @default(uuid()) @db.Uuid
+  email                 String            @unique @db.VarChar(255)
+  passwordHash          String            @map("password_hash") @db.VarChar(255)
+  role                  UserRole
+  accountStatus         UserAccountStatus @default(PENDING_EMAIL_VERIFICATION) @map("account_status")
+  emailVerified         Boolean           @default(false) @map("email_verified")
+  emailVerifiedAt       DateTime?         @map("email_verified_at") @db.Timestamptz
+  lastLoginAt           DateTime?         @map("last_login_at") @db.Timestamptz
+  loginCount            Int               @default(0) @map("login_count")
+  failedLoginAttempts   Int               @default(0) @map("failed_login_attempts")
+  lastFailedLoginAt     DateTime?         @map("last_failed_login_at") @db.Timestamptz
+  passwordResetToken    String?           @map("password_reset_token") @db.VarChar(255)
+  passwordResetExpires  DateTime?         @map("password_reset_expires_at") @db.Timestamptz
+  twoFactorEnabled      Boolean           @default(false) @map("two_factor_enabled")
+  twoFactorSecret       String?           @map("two_factor_secret") @db.VarChar(255)
+  createdAt             DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt             DateTime          @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt             DateTime?         @map("deleted_at") @db.Timestamptz
+
+  // Relations
+  supplier              Supplier?
+  shop                  Shop?
+  refreshTokens         RefreshToken[]
+  sentMessages          NegotiationMessage[]  @relation("MessageSender")
+  createdNegotiations   NegotiationSession[]  @relation("SessionCreator")
+  closedNegotiations    NegotiationSession[]  @relation("SessionCloser")
+  lastMessageSessions   NegotiationSession[]  @relation("LastMessageBy")
+  participants          NegotiationParticipant[]
+  events                NegotiationEvent[]
+  auditLogs             AuditLog[]
+  verifiedSuppliers     Supplier[]            @relation("VerifiedBy")
+
+  @@index([email])
+  @@index([role])
+  @@index([accountStatus])
+  @@index([createdAt])
+  @@map("users")
+}
+
+model RefreshToken {
+  id          String   @id @default(uuid()) @db.Uuid
+  token       String   @unique @db.VarChar(500)
+  userId      String   @map("user_id") @db.Uuid
+  expiresAt   DateTime @map("expires_at") @db.Timestamptz
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  revokedAt   DateTime? @map("revoked_at") @db.Timestamptz
+  userAgent   String?  @map("user_agent") @db.VarChar(500)
+  ipAddress   String?  @map("ip_address") @db.VarChar(45)
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+// ============================================
+// SUPPLIER
+// ============================================
+
+model Supplier {
+  id                     String         @id @default(uuid()) @db.Uuid
+  userId                 String         @unique @map("user_id") @db.Uuid
+  companyName            String         @map("company_name") @db.VarChar(255)
+  legalName              String         @map("legal_name") @db.VarChar(255)
+  businessLicenseNumber  String?        @map("business_license_number") @db.VarChar(100)
+  taxId                  String         @map("tax_id") @db.VarChar(50)
+  businessType           String?        @map("business_type") @db.VarChar(100)
+  description            String?        @db.Text
+  yearEstablished        Int?           @map("year_established")
+  employeeCountRange     String?        @map("employee_count_range") @db.VarChar(50)
+  annualRevenueRange     String?        @map("annual_revenue_range") @db.VarChar(50)
+
+  // Address
+  addressLine1           String?        @map("address_line_1") @db.VarChar(255)
+  addressLine2           String?        @map("address_line_2") @db.VarChar(255)
+  city                   String?        @db.VarChar(100)
+  stateProvince          String?        @map("state_province") @db.VarChar(100)
+  postalCode             String?        @map("postal_code") @db.VarChar(20)
+  country                String         @db.VarChar(100)
+
+  // Contact
+  phone                  String?        @db.VarChar(20)
+  fax                    String?        @db.VarChar(20)
+  website                String?        @db.VarChar(255)
+  contactPersonName      String?        @map("contact_person_name") @db.VarChar(255)
+  contactPersonTitle     String?        @map("contact_person_title") @db.VarChar(100)
+  contactPersonEmail     String?        @map("contact_person_email") @db.VarChar(255)
+  contactPersonPhone     String?        @map("contact_person_phone") @db.VarChar(20)
+
+  // Business Details (JSONB)
+  minOrderValue          Decimal?       @map("min_order_value") @db.Decimal(12, 2)
+  preferredPaymentTerms  String?        @map("preferred_payment_terms") @db.Text
+  leadTimeDays           Int?           @map("lead_time_days")
+  shippingMethods        Json?          @map("shipping_methods") @db.JsonB
+  exportCountries        Json?          @map("export_countries") @db.JsonB
+
+  // Certifications & Documents (JSONB)
+  certifications         Json?          @db.JsonB
+  businessLicenseUrl     String?        @map("business_license_url") @db.VarChar(500)
+  taxDocumentUrl         String?        @map("tax_document_url") @db.VarChar(500)
+  certificateUrls        Json?          @map("certificate_urls") @db.JsonB
+
+  // Profile
+  logoUrl                String?        @map("logo_url") @db.VarChar(500)
+  bannerUrl              String?        @map("banner_url") @db.VarChar(500)
+  videoUrl               String?        @map("video_url") @db.VarChar(500)
+
+  // Ratings & Stats
+  ratingAverage          Decimal        @default(0.00) @map("rating_average") @db.Decimal(3, 2)
+  ratingCount            Int            @default(0) @map("rating_count")
+  totalProducts          Int            @default(0) @map("total_products")
+  totalNegotiations      Int            @default(0) @map("total_negotiations")
+  successfulNegotiations Int            @default(0) @map("successful_negotiations")
+  responseTimeHours      Decimal?       @map("response_time_hours") @db.Decimal(5, 2)
+
+  // Status
+  status                 SupplierStatus @default(PENDING_VERIFICATION)
+  verifiedAt             DateTime?      @map("verified_at") @db.Timestamptz
+  verifiedByAdminId      String?        @map("verified_by_admin_id") @db.Uuid
+  rejectionReason        String?        @map("rejection_reason") @db.Text
+  nextReverificationDate DateTime?      @map("next_reverification_date") @db.Date
+
+  // Timestamps
+  createdAt              DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt              DateTime       @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt              DateTime?      @map("deleted_at") @db.Timestamptz
+
+  // Relations
+  user                   User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verifiedByAdmin        User?          @relation("VerifiedBy", fields: [verifiedByAdminId], references: [id])
+  products               Product[]
+  negotiations           NegotiationSession[]
+  purchaseIntents        PurchaseIntent[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([country])
+  @@index([ratingAverage])
+  @@index([verifiedAt])
+  @@map("suppliers")
+}
+
+// ============================================
+// SHOP (BUYER)
+// ============================================
+
+model Shop {
+  id                          String    @id @default(uuid()) @db.Uuid
+  userId                      String    @unique @map("user_id") @db.Uuid
+  shopName                    String    @map("shop_name") @db.VarChar(255)
+  legalName                   String?   @map("legal_name") @db.VarChar(255)
+  businessLicenseNumber       String?   @map("business_license_number") @db.VarChar(100)
+  taxId                       String?   @map("tax_id") @db.VarChar(50)
+  businessType                String?   @map("business_type") @db.VarChar(100)
+  description                 String?   @db.Text
+
+  // Address
+  addressLine1                String?   @map("address_line_1") @db.VarChar(255)
+  addressLine2                String?   @map("address_line_2") @db.VarChar(255)
+  city                        String?   @db.VarChar(100)
+  stateProvince               String?   @map("state_province") @db.VarChar(100)
+  postalCode                  String?   @map("postal_code") @db.VarChar(20)
+  country                     String    @db.VarChar(100)
+
+  // Contact
+  phone                       String?   @db.VarChar(20)
+  website                     String?   @db.VarChar(255)
+  contactPersonName           String?   @map("contact_person_name") @db.VarChar(255)
+  contactPersonEmail          String?   @map("contact_person_email") @db.VarChar(255)
+  contactPersonPhone          String?   @map("contact_person_phone") @db.VarChar(20)
+
+  // Business Profile (JSONB)
+  businessCategories          Json?     @map("business_categories") @db.JsonB
+  preferredSuppliersCountries Json?     @map("preferred_suppliers_countries") @db.JsonB
+  averageOrderValue           Decimal?  @map("average_order_value") @db.Decimal(12, 2)
+  monthlyPurchaseVolume       Decimal?  @map("monthly_purchase_volume") @db.Decimal(12, 2)
+  paymentTermsPreference      String?   @map("payment_terms_preference") @db.VarChar(100)
+
+  // Profile
+  logoUrl                     String?   @map("logo_url") @db.VarChar(500)
+
+  // Stats
+  totalNegotiations           Int       @default(0) @map("total_negotiations")
+  totalPurchaseIntents        Int       @default(0) @map("total_purchase_intents")
+  totalOrdersValue            Decimal   @default(0.00) @map("total_orders_value") @db.Decimal(14, 2)
+
+  // Timestamps
+  createdAt                   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                   DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt                   DateTime? @map("deleted_at") @db.Timestamptz
+
+  // Relations
+  user                        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  negotiations                NegotiationSession[]
+  purchaseIntents             PurchaseIntent[]
+
+  @@index([userId])
+  @@index([country])
+  @@map("shops")
+}
+
+// ============================================
+// CATEGORY
+// ============================================
+
+model Category {
+  id               String     @id @default(uuid()) @db.Uuid
+  parentId         String?    @map("parent_id") @db.Uuid
+  name             String     @db.VarChar(100)
+  slug             String     @unique @db.VarChar(100)
+  description      String?    @db.Text
+  iconUrl          String?    @map("icon_url") @db.VarChar(500)
+  bannerUrl        String?    @map("banner_url") @db.VarChar(500)
+  level            Int        @default(1)
+  sortOrder        Int        @default(0) @map("sort_order")
+  isActive         Boolean    @default(true) @map("is_active")
+  seoTitle         String?    @map("seo_title") @db.VarChar(255)
+  seoDescription   String?    @map("seo_description") @db.Text
+  seoKeywords      String?    @map("seo_keywords") @db.Text
+  attributesSchema Json?      @map("attributes_schema") @db.JsonB
+  productCount     Int        @default(0) @map("product_count")
+  supplierCount    Int        @default(0) @map("supplier_count")
+  createdAt        DateTime   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime   @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  parent           Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children         Category[] @relation("CategoryHierarchy")
+  products         Product[]
+
+  @@index([parentId])
+  @@index([slug])
+  @@index([level])
+  @@index([isActive])
+  @@index([sortOrder])
+  @@map("categories")
+}
+
+// ============================================
+// PRODUCT
+// ============================================
+
+model Product {
+  id                       String    @id @default(uuid()) @db.Uuid
+  supplierId               String    @map("supplier_id") @db.Uuid
+  categoryId               String    @map("category_id") @db.Uuid
+
+  // Identifiers
+  sku                      String?   @unique @db.VarChar(100)
+  manufacturerPartNumber   String?   @map("manufacturer_part_number") @db.VarChar(100)
+  barcode                  String?   @db.VarChar(100)
+  hsCode                   String?   @map("hs_code") @db.VarChar(20)
+
+  // Basic Info
+  name                     String    @db.VarChar(255)
+  description              String?   @db.Text
+  shortDescription         String?   @map("short_description") @db.VarChar(500)
+  brand                    String?   @db.VarChar(100)
+  model                    String?   @db.VarChar(100)
+
+  // Pricing
+  unitPrice                Decimal   @map("unit_price") @db.Decimal(10, 2)
+  currency                 String    @default("USD") @db.VarChar(3)
+  minOrderQuantity         Int       @default(1) @map("min_order_quantity")
+  priceUnit                String    @default("piece") @map("price_unit") @db.VarChar(50)
+  bulkPricingTiers         Json?     @map("bulk_pricing_tiers") @db.JsonB
+
+  // Inventory
+  stockQuantity            Int       @default(0) @map("stock_quantity")
+  lowStockThreshold        Int?      @map("low_stock_threshold")
+  availabilityStatus       String    @default("in_stock") @map("availability_status") @db.VarChar(50)
+  restockingDate           DateTime? @map("restocking_date") @db.Date
+
+  // Specifications (JSONB)
+  specifications           Json?     @db.JsonB
+  dimensions               Json?     @db.JsonB
+  weightKg                 Decimal?  @map("weight_kg") @db.Decimal(10, 3)
+  packageDimensions        Json?     @map("package_dimensions") @db.JsonB
+  packageWeightKg          Decimal?  @map("package_weight_kg") @db.Decimal(10, 3)
+  unitsPerPackage          Int?      @map("units_per_package")
+
+  // Media (JSONB)
+  mainImageUrl             String?   @map("main_image_url") @db.VarChar(500)
+  imageUrls                Json?     @map("image_urls") @db.JsonB
+  videoUrl                 String?   @map("video_url") @db.VarChar(500)
+  documentUrls             Json?     @map("document_urls") @db.JsonB
+
+  // Logistics
+  leadTimeDays             Int       @default(7) @map("lead_time_days")
+  shippingInfo             Json?     @map("shipping_info") @db.JsonB
+  originCountry            String?   @map("origin_country") @db.VarChar(100)
+  productionCapacityMonthly Int?     @map("production_capacity_monthly")
+
+  // SEO & Marketing
+  seoTitle                 String?   @map("seo_title") @db.VarChar(255)
+  seoDescription           String?   @map("seo_description") @db.Text
+  tags                     Json?     @db.JsonB
+
+  // Stats
+  viewCount                Int       @default(0) @map("view_count")
+  inquiryCount             Int       @default(0) @map("inquiry_count")
+  negotiationCount         Int       @default(0) @map("negotiation_count")
+  conversionCount          Int       @default(0) @map("conversion_count")
+
+  // Status
+  isActive                 Boolean   @default(true) @map("is_active")
+  isFeatured               Boolean   @default(false) @map("is_featured")
+  featuredUntil            DateTime? @map("featured_until") @db.Timestamptz
+  qualityScore             Int       @default(0) @map("quality_score")
+
+  // Timestamps
+  createdAt                DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt                DateTime? @map("deleted_at") @db.Timestamptz
+
+  // Relations
+  supplier                 Supplier  @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  category                 Category  @relation(fields: [categoryId], references: [id])
+  negotiations             NegotiationSession[]
+  purchaseIntents          PurchaseIntent[]
+
+  @@index([supplierId])
+  @@index([categoryId])
+  @@index([sku])
+  @@index([isActive])
+  @@index([unitPrice])
+  @@index([minOrderQuantity])
+  @@index([createdAt(sort: Desc)])
+  @@index([isFeatured, featuredUntil])
+  @@map("products")
+}
+
+// ============================================
+// NEGOTIATION
+// ============================================
+
+model NegotiationSession {
+  id                    String             @id @default(uuid()) @db.Uuid
+  shopId                String             @map("shop_id") @db.Uuid
+  supplierId            String             @map("supplier_id") @db.Uuid
+  productId             String?            @map("product_id") @db.Uuid
+  createdByUserId       String             @map("created_by_user_id") @db.Uuid
+
+  // Status & Lifecycle
+  status                NegotiationStatus  @default(INITIATED)
+  initiatedBy           ParticipantRole    @map("initiated_by")
+  closedReason          String?            @map("closed_reason") @db.VarChar(500)
+  closedByUserId        String?            @map("closed_by_user_id") @db.Uuid
+
+  // Initial Request Details
+  requestedQuantity     Int?               @map("requested_quantity")
+  requestedPrice        Decimal?           @map("requested_price") @db.Decimal(10, 2)
+  requestedCurrency     String             @default("USD") @map("requested_currency") @db.VarChar(3)
+  shippingRequirements  String?            @map("shipping_requirements") @db.Text
+  paymentTermsRequest   String?            @map("payment_terms_request") @db.Text
+  initialMessage        String             @map("initial_message") @db.Text
+
+  // Final Agreed Terms
+  finalAgreedPrice      Decimal?           @map("final_agreed_price") @db.Decimal(10, 2)
+  finalAgreedQuantity   Int?               @map("final_agreed_quantity")
+  finalShippingTerms    String?            @map("final_shipping_terms") @db.Text
+  finalPaymentTerms     String?            @map("final_payment_terms") @db.Text
+  agreedDeliveryDate    DateTime?          @map("agreed_delivery_date") @db.Date
+
+  // Metadata
+  totalMessages         Int                @default(0) @map("total_messages")
+  lastMessageAt         DateTime?          @map("last_message_at") @db.Timestamptz
+  lastMessageById       String?            @map("last_message_by") @db.Uuid
+  shopUnreadCount       Int                @default(0) @map("shop_unread_count")
+  supplierUnreadCount   Int                @default(0) @map("supplier_unread_count")
+
+  // Timestamps
+  createdAt             DateTime           @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt             DateTime           @updatedAt @map("updated_at") @db.Timestamptz
+  expiresAt             DateTime?          @map("expires_at") @db.Timestamptz
+  closedAt              DateTime?          @map("closed_at") @db.Timestamptz
+  firstResponseAt       DateTime?          @map("first_response_at") @db.Timestamptz
+  agreedAt              DateTime?          @map("agreed_at") @db.Timestamptz
+  deletedAt             DateTime?          @map("deleted_at") @db.Timestamptz
+
+  // Relations
+  shop                  Shop               @relation(fields: [shopId], references: [id])
+  supplier              Supplier           @relation(fields: [supplierId], references: [id])
+  product               Product?           @relation(fields: [productId], references: [id])
+  createdByUser         User               @relation("SessionCreator", fields: [createdByUserId], references: [id])
+  closedByUser          User?              @relation("SessionCloser", fields: [closedByUserId], references: [id])
+  lastMessageByUser     User?              @relation("LastMessageBy", fields: [lastMessageById], references: [id])
+  messages              NegotiationMessage[]
+  participants          NegotiationParticipant[]
+  events                NegotiationEvent[]
+  purchaseIntents       PurchaseIntent[]
+
+  @@index([shopId])
+  @@index([supplierId])
+  @@index([productId])
+  @@index([status])
+  @@index([createdAt(sort: Desc)])
+  @@index([expiresAt])
+  @@map("negotiation_sessions")
+}
+
+model NegotiationMessage {
+  id                String             @id @default(uuid()) @db.Uuid
+  sessionId         String             @map("session_id") @db.Uuid
+  senderUserId      String             @map("sender_user_id") @db.Uuid
+  replyToMessageId  String?            @map("reply_to_message_id") @db.Uuid
+
+  // Message Content
+  content           String             @db.Text
+  messageType       MessageType        @default(TEXT) @map("message_type")
+  senderRole        ParticipantRole    @map("sender_role")
+
+  // Structured Data
+  metadata          Json?              @db.JsonB
+  attachments       Json?              @db.JsonB
+
+  // Read Status
+  isReadByShop      Boolean            @default(false) @map("is_read_by_shop")
+  isReadBySupplier  Boolean            @default(false) @map("is_read_by_supplier")
+  readByShopAt      DateTime?          @map("read_by_shop_at") @db.Timestamptz
+  readBySupplierAt  DateTime?          @map("read_by_supplier_at") @db.Timestamptz
+
+  // Delivery Status
+  isDelivered       Boolean            @default(false) @map("is_delivered")
+  deliveredAt       DateTime?          @map("delivered_at") @db.Timestamptz
+
+  // Timestamps
+  createdAt         DateTime           @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime           @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt         DateTime?          @map("deleted_at") @db.Timestamptz
+
+  // Relations
+  session           NegotiationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sender            User               @relation("MessageSender", fields: [senderUserId], references: [id])
+  replyToMessage    NegotiationMessage? @relation("MessageReplies", fields: [replyToMessageId], references: [id])
+  replies           NegotiationMessage[] @relation("MessageReplies")
+  lastReadBy        NegotiationParticipant[]
+
+  @@index([sessionId, createdAt(sort: Desc)])
+  @@index([senderUserId])
+  @@map("negotiation_messages")
+}
+
+model NegotiationParticipant {
+  id                        String             @id @default(uuid()) @db.Uuid
+  sessionId                 String             @map("session_id") @db.Uuid
+  userId                    String             @map("user_id") @db.Uuid
+
+  // Participant Info
+  role                      ParticipantRole
+  joinedAt                  DateTime           @default(now()) @map("joined_at") @db.Timestamptz
+  lastSeenAt                DateTime?          @map("last_seen_at") @db.Timestamptz
+  lastReadMessageId         String?            @map("last_read_message_id") @db.Uuid
+
+  // Notification Preferences
+  emailNotificationsEnabled Boolean            @default(true) @map("email_notifications_enabled")
+  pushNotificationsEnabled  Boolean            @default(true) @map("push_notifications_enabled")
+  muted                     Boolean            @default(false)
+
+  // Timestamps
+  createdAt                 DateTime           @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                 DateTime           @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  session                   NegotiationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user                      User               @relation(fields: [userId], references: [id])
+  lastReadMessage           NegotiationMessage? @relation(fields: [lastReadMessageId], references: [id])
+
+  @@unique([sessionId, userId])
+  @@index([sessionId])
+  @@index([userId])
+  @@map("negotiation_participants")
+}
+
+model NegotiationEvent {
+  id          String             @id @default(uuid()) @db.Uuid
+  sessionId   String             @map("session_id") @db.Uuid
+  userId      String?            @map("user_id") @db.Uuid
+
+  // Event Details
+  eventType   String             @map("event_type") @db.VarChar(100)
+  oldValue    Json?              @map("old_value") @db.JsonB
+  newValue    Json?              @map("new_value") @db.JsonB
+  description String?            @db.Text
+
+  // Timestamps
+  createdAt   DateTime           @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relations
+  session     NegotiationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user        User?              @relation(fields: [userId], references: [id])
+
+  @@index([sessionId, createdAt(sort: Desc)])
+  @@map("negotiation_events")
+}
+
+// ============================================
+// PURCHASE INTENT
+// ============================================
+
+model PurchaseIntent {
+  id                   String               @id @default(uuid()) @db.Uuid
+  intentNumber         String               @unique @map("intent_number") @db.VarChar(50)
+  shopId               String               @map("shop_id") @db.Uuid
+  supplierId           String               @map("supplier_id") @db.Uuid
+  productId            String?              @map("product_id") @db.Uuid
+  negotiationSessionId String?              @map("negotiation_session_id") @db.Uuid
+
+  // Status
+  status               PurchaseIntentStatus @default(DRAFT)
+
+  // Product Details
+  productName          String               @map("product_name") @db.VarChar(255)
+  productSku           String?              @map("product_sku") @db.VarChar(100)
+
+  // Pricing
+  quantity             Int
+  agreedUnitPrice      Decimal              @map("agreed_unit_price") @db.Decimal(10, 2)
+  currency             String               @default("USD") @db.VarChar(3)
+  totalAmount          Decimal              @map("total_amount") @db.Decimal(14, 2)
+
+  // Terms
+  shippingTerms        String?              @map("shipping_terms") @db.Text
+  paymentTerms         String?              @map("payment_terms") @db.Text
+  deliveryDate         DateTime?            @map("delivery_date") @db.Date
+  shippingAddress      Json?                @map("shipping_address") @db.JsonB
+  billingAddress       Json?                @map("billing_address") @db.JsonB
+  notes                String?              @db.Text
+
+  // Cancellation
+  cancellationReason   String?              @map("cancellation_reason") @db.Text
+  cancelledBy          String?              @map("cancelled_by") @db.VarChar(20)
+
+  // Timestamps
+  createdAt            DateTime             @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt            DateTime             @updatedAt @map("updated_at") @db.Timestamptz
+  submittedAt          DateTime?            @map("submitted_at") @db.Timestamptz
+  agreedAt             DateTime?            @map("agreed_at") @db.Timestamptz
+  cancelledAt          DateTime?            @map("cancelled_at") @db.Timestamptz
+  expiresAt            DateTime?            @map("expires_at") @db.Timestamptz
+  deletedAt            DateTime?            @map("deleted_at") @db.Timestamptz
+
+  // Relations
+  shop                 Shop                 @relation(fields: [shopId], references: [id])
+  supplier             Supplier             @relation(fields: [supplierId], references: [id])
+  product              Product?             @relation(fields: [productId], references: [id])
+  negotiationSession   NegotiationSession?  @relation(fields: [negotiationSessionId], references: [id])
+
+  @@index([shopId])
+  @@index([supplierId])
+  @@index([status])
+  @@index([createdAt(sort: Desc)])
+  @@index([expiresAt])
+  @@map("purchase_intents")
+}
+
+// ============================================
+// ADMIN & AUDIT
+// ============================================
+
+model AuditLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  action      String   @db.VarChar(100)
+  entityType  String   @map("entity_type") @db.VarChar(50)
+  entityId    String?  @map("entity_id") @db.Uuid
+  oldValue    Json?    @map("old_value") @db.JsonB
+  newValue    Json?    @map("new_value") @db.JsonB
+  ipAddress   String?  @map("ip_address") @db.VarChar(45)
+  userAgent   String?  @map("user_agent") @db.VarChar(500)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relations
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([createdAt(sort: Desc)])
+  @@map("audit_logs")
+}
