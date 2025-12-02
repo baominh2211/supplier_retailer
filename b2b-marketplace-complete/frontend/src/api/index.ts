@@ -1,7 +1,20 @@
 import axios from 'axios';
-import { useAuthStore } from '../store/authStore';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+// Helper to get token from localStorage (persisted by Zustand)
+const getToken = (): string | null => {
+  try {
+    const storage = localStorage.getItem('auth-storage');
+    if (storage) {
+      const parsed = JSON.parse(storage);
+      return parsed?.state?.token || null;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+};
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -12,9 +25,12 @@ export const api = axios.create({
 
 // Request interceptor - add token
 api.interceptors.request.use((config) => {
-  const token = useAuthStore.getState().token;
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  // Skip if Authorization header already set (e.g., passed directly)
+  if (!config.headers.Authorization) {
+    const token = getToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
   }
   return config;
 });
@@ -24,8 +40,14 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 401) {
-      useAuthStore.getState().logout();
-      window.location.href = '/login';
+      // Only redirect if not on login page and not during login flow
+      const isLoginPage = window.location.pathname.includes('/login');
+      const isAuthRequest = error.config?.url?.includes('/auth/');
+      
+      if (!isLoginPage && !isAuthRequest) {
+        localStorage.removeItem('auth-storage');
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }
@@ -44,7 +66,9 @@ export const authApi = {
   },
   loginJson: (email: string, password: string) => 
     api.post('/auth/login/json', { email, password }),
-  getMe: () => api.get('/users/me'),
+  getMe: (token?: string) => api.get('/users/me', token ? {
+    headers: { Authorization: `Bearer ${token}` }
+  } : undefined),
 };
 
 // Products API
@@ -60,12 +84,12 @@ export const suppliersApi = {
   get: (id: number) => api.get(`/suppliers/${id}`),
   getMe: () => api.get('/suppliers/me'),
   updateMe: (data: any) => api.patch('/suppliers/me', data),
-  getProducts: () => api.get('/suppliers/products'),
-  createProduct: (data: any) => api.post('/suppliers/products', data),
-  updateProduct: (id: number, data: any) => api.patch(`/suppliers/products/${id}`, data),
-  deleteProduct: (id: number) => api.delete(`/suppliers/products/${id}`),
-  getQuotes: () => api.get('/suppliers/quotes'),
-  createQuote: (data: any) => api.post('/suppliers/quotes', data),
+  getProducts: () => api.get('/suppliers/me/products'),
+  createProduct: (data: any) => api.post('/suppliers/me/products', data),
+  updateProduct: (id: number, data: any) => api.patch(`/suppliers/me/products/${id}`, data),
+  deleteProduct: (id: number) => api.delete(`/suppliers/me/products/${id}`),
+  getQuotes: () => api.get('/suppliers/me/quotes'),
+  createQuote: (data: any) => api.post('/suppliers/me/quotes', data),
 };
 
 // Shops API

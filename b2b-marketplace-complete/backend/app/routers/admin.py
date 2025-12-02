@@ -6,7 +6,7 @@ from typing import List
 
 from app.database import get_db
 from app.models import User, Product, ProductStatus, Contract, RFQ, Supplier, Shop
-from app.schemas import ProductResponse, ProductUpdate
+from app.schemas import ProductResponse, ProductUpdate, UserResponse, SupplierWithUser, ShopWithUser
 from app.auth import get_current_user, get_admin_user
 
 router = APIRouter()
@@ -88,7 +88,7 @@ async def reject_product(
     await db.refresh(product)
     return product
 
-@router.get("/users", response_model=List)
+@router.get("/users", response_model=List[UserResponse])
 async def list_users(
     current_user: User = Depends(get_admin_user),
     db: AsyncSession = Depends(get_db)
@@ -99,7 +99,7 @@ async def list_users(
     )
     return result.scalars().all()
 
-@router.get("/suppliers", response_model=List)
+@router.get("/suppliers", response_model=List[SupplierWithUser])
 async def list_all_suppliers(
     current_user: User = Depends(get_admin_user),
     db: AsyncSession = Depends(get_db)
@@ -110,7 +110,7 @@ async def list_all_suppliers(
     )
     return result.scalars().all()
 
-@router.get("/shops", response_model=List)
+@router.get("/shops", response_model=List[ShopWithUser])
 async def list_all_shops(
     current_user: User = Depends(get_admin_user),
     db: AsyncSession = Depends(get_db)

@@ -12,7 +12,7 @@ interface AuthState {
   login: (email: string, password: string) => Promise<void>;
   register: (data: any) => Promise<void>;
   logout: () => void;
-  fetchUser: () => Promise<void>;
+  fetchUser: (token?: string) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -26,12 +26,42 @@ export const useAuthStore = create<AuthState>()(
       login: async (email: string, password: string) => {
         set({ isLoading: true });
         try {
+          // Step 1: Get token
+          console.log('Step 1: Calling login API...');
           const response = await authApi.login(email, password);
+          console.log('Login response:', response.data);
+          
           const { access_token } = response.data;
-          set({ token: access_token, isAuthenticated: true });
-          await get().fetchUser();
-        } finally {
-          set({ isLoading: false });
+          
+          if (!access_token) {
+            throw new Error('No access_token in response');
+          }
+          
+          // Step 2: Fetch user with token directly
+          console.log('Step 2: Fetching user with token...');
+          const userResponse = await authApi.getMe(access_token);
+          console.log('User response:', userResponse.data);
+          
+          // Step 3: Set everything at once
+          set({ 
+            token: access_token, 
+            user: userResponse.data,
+            isAuthenticated: true,
+            isLoading: false
+          });
+          
+          console.log('Login successful!');
+        } catch (error: any) {
+          console.error('Login error:', error);
+          console.error('Error response:', error.response?.data);
+          // Reset state on any error
+          set({ 
+            token: null, 
+            user: null, 
+            isAuthenticated: false, 
+            isLoading: false 
+          });
+          throw error; // Re-throw to let LoginPage handle it
         }
       },
       
@@ -39,9 +69,11 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true });
         try {
           await authApi.register(data);
+          // After register, login with same credentials
           await get().login(data.email, data.password);
-        } finally {
+        } catch (error) {
           set({ isLoading: false });
+          throw error;
         }
       },
       
@@ -50,11 +82,17 @@ export const useAuthStore = create<AuthState>()(
         localStorage.removeItem('auth-storage');
       },
       
-      fetchUser: async () => {
+      fetchUser: async (token?: string) => {
         try {
-          const response = await authApi.getMe();
+          const tokenToUse = token || get().token;
+          if (!tokenToUse) {
+            set({ user: null, token: null, isAuthenticated: false });
+            return;
+          }
+          const response = await authApi.getMe(tokenToUse);
           set({ user: response.data, isAuthenticated: true });
-        } catch {
+        } catch (error) {
+          console.error('Failed to fetch user:', error);
           set({ user: null, token: null, isAuthenticated: false });
         }
       },

@@ -97,6 +97,9 @@ class ShopResponse(ShopBase):
     class Config:
         from_attributes = True
 
+class ShopWithUser(ShopResponse):
+    user: UserResponse
+
 # ==================== PRODUCT ====================
 class ProductBase(BaseModel):
     name: str
