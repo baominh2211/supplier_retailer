@@ -1,377 +1,244 @@
-# B2B Marketplace Platform
+# 🛒 B2B Marketplace
 
-A production-ready B2B marketplace connecting suppliers with retail shops, featuring real-time negotiations, purchase intent management, and comprehensive admin tools.
+Nền tảng B2B kết nối Nhà cung cấp (Suppliers) với Cửa hàng (Shops). Hỗ trợ gửi RFQ (Request for Quotation), đàm phán giá, và ký hợp đồng.
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-green.svg)
-![PostgreSQL](https://img.shields.io/badge/postgresql-14%2B-blue.svg)
-![TypeScript](https://img.shields.io/badge/typescript-5.0%2B-blue.svg)
+## 🏗️ Tech Stack
 
-## 🚀 Features
+### Backend
+- **FastAPI** - Python web framework
+- **PostgreSQL** - Database
+- **SQLAlchemy** - ORM (async)
+- **JWT** - Authentication
+- **Pydantic** - Validation
 
-### For Suppliers
-- **Company Verification**: Submit business documents for admin verification
-- **Product Catalog**: Manage products with bulk pricing tiers, specifications, and media
-- **Negotiation Management**: Respond to shop inquiries with real-time messaging
-- **Purchase Intent Handling**: Accept, reject, or negotiate purchase requests
-- **Performance Analytics**: Track response times, conversion rates, and ratings
+### Frontend
+- **React 18** + TypeScript
+- **Vite** - Build tool
+- **TailwindCSS** - Styling
+- **Zustand** - State management
+- **React Router** - Routing
 
-### For Retail Shops
-- **Supplier Discovery**: Search and filter suppliers by category, location, and ratings
-- **Product Browsing**: Browse catalogs with advanced filtering and comparison
-- **Negotiation Initiation**: Start negotiations with price/quantity requests
-- **Purchase Intent Creation**: Create formal purchase requests from agreed terms
-- **Order Tracking**: Monitor intent lifecycle from draft to agreement
-
-### For Administrators
-- **Supplier Verification**: Review and approve/reject supplier applications
-- **Content Moderation**: Manage categories, products, and disputes
-- **User Management**: Suspend/ban users, handle reports
-- **Platform Analytics**: Dashboard with key metrics and system health
-- **Audit Logs**: Complete trail of all administrative actions
-
-### Technical Features
-- **Real-time Messaging**: WebSocket-based negotiation chat
-- **State Machine**: Purchase intent lifecycle with automatic expiration
-- **Full-text Search**: PostgreSQL GIN indexes for fast product/supplier search
-- **Background Jobs**: Automated expiration handling and notifications
-- **JWT Authentication**: Secure token-based auth with refresh tokens
-- **Role-based Access**: Fine-grained permissions for different user types
-
-## 🏗️ Architecture
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                         Frontend (React)                         │
-│     TypeScript │ TailwindCSS │ React Query │ WebSocket Client    │
-└──────────────────────────────┬──────────────────────────────────┘
-                               │
-                               ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                      API Gateway (Nginx)                         │
-│              Load Balancer │ SSL Termination │ Rate Limiting     │
-└──────────────────────────────┬──────────────────────────────────┘
-                               │
-           ┌───────────────────┼───────────────────┐
-           ▼                   ▼                   ▼
-┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐
-│   REST API       │  │  WebSocket       │  │  Background      │
-│   (Express)      │  │  Server          │  │  Jobs            │
-│                  │  │  (Socket.IO)     │  │  (node-cron)     │
-└────────┬─────────┘  └────────┬─────────┘  └────────┬─────────┘
-         │                     │                     │
-         └──────────────────┬──┴─────────────────────┘
-                            │
-         ┌──────────────────┼──────────────────┐
-         ▼                  ▼                  ▼
-┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐
-│   PostgreSQL     │  │     Redis        │  │   S3/MinIO       │
-│   (Primary DB)   │  │   (Cache/Queue)  │  │   (File Storage) │
-└──────────────────┘  └──────────────────┘  └──────────────────┘
-```
-
-## 📋 Prerequisites
-
-- **Node.js**: v18.0.0 or higher
-- **PostgreSQL**: v14 or higher
-- **Redis**: v6 or higher (for caching and pub/sub)
-- **Docker & Docker Compose**: For containerized deployment
-
-## 🛠️ Installation
-
-### Local Development
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/your-org/b2b-marketplace.git
-   cd b2b-marketplace
-   ```
-
-2. **Install dependencies**
-   ```bash
-   # Backend
-   cd backend && npm install
-   
-   # Frontend
-   cd ../frontend && npm install
-   ```
-
-3. **Configure environment**
-   ```bash
-   # Backend
-   cp backend/.env.example backend/.env
-   # Edit backend/.env with your database credentials
-   
-   # Frontend
-   cp frontend/.env.example frontend/.env
-   ```
-
-4. **Setup database**
-   ```bash
-   cd backend
-   npm run db:migrate
-   npm run db:seed
-   ```
-
-5. **Start development servers**
-   ```bash
-   # Terminal 1 - Backend
-   cd backend && npm run dev
-   
-   # Terminal 2 - Frontend
-   cd frontend && npm run dev
-   ```
-
-### Docker Deployment
-
-```bash
-# Development
-docker-compose up -d
-
-# Production
-docker-compose -f docker-compose.prod.yml up -d
-```
-
-## 🔧 Configuration
-
-### Environment Variables
-
-#### Backend (.env)
-```env
-# Server
-NODE_ENV=development
-PORT=3001
-API_URL=http://localhost:3001
-
-# Database
-DATABASE_URL=postgresql://user:password@localhost:5432/b2b_marketplace
-DATABASE_POOL_MIN=2
-DATABASE_POOL_MAX=10
-
-# Redis
-REDIS_URL=redis://localhost:6379
-
-# JWT
-JWT_SECRET=your-super-secret-key-change-in-production
-JWT_EXPIRES_IN=15m
-JWT_REFRESH_EXPIRES_IN=7d
-
-# Email (SMTP)
-SMTP_HOST=smtp.example.com
-SMTP_PORT=587
-SMTP_USER=noreply@example.com
-SMTP_PASS=your-smtp-password
-SMTP_FROM=B2B Marketplace <noreply@example.com>
-
-# File Storage
-STORAGE_TYPE=local
-STORAGE_PATH=./uploads
-# For S3: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_S3_BUCKET
-
-# Security
-CORS_ORIGIN=http://localhost:3000
-RATE_LIMIT_WINDOW_MS=900000
-RATE_LIMIT_MAX_REQUESTS=100
-```
-
-#### Frontend (.env)
-```env
-VITE_API_URL=http://localhost:3001/api
-VITE_WS_URL=ws://localhost:3001
-```
-
-## 📚 API Documentation
-
-### Authentication
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/register` | Register new user |
-| POST | `/api/auth/login` | Login and get tokens |
-| POST | `/api/auth/refresh` | Refresh access token |
-| POST | `/api/auth/logout` | Invalidate refresh token |
-| POST | `/api/auth/verify-email` | Verify email address |
-| POST | `/api/auth/forgot-password` | Request password reset |
-| POST | `/api/auth/reset-password` | Reset password |
-
-### Suppliers
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/suppliers` | List suppliers (with filters) |
-| GET | `/api/suppliers/:id` | Get supplier details |
-| POST | `/api/suppliers` | Create supplier profile |
-| PUT | `/api/suppliers/:id` | Update supplier profile |
-| POST | `/api/suppliers/:id/verify` | Submit for verification |
-
-### Products
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/products` | List products (with filters) |
-| GET | `/api/products/:id` | Get product details |
-| POST | `/api/products` | Create product |
-| PUT | `/api/products/:id` | Update product |
-| DELETE | `/api/products/:id` | Soft delete product |
-
-### Negotiations
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/negotiations` | List negotiations |
-| GET | `/api/negotiations/:id` | Get negotiation details |
-| POST | `/api/negotiations` | Start negotiation |
-| PUT | `/api/negotiations/:id/status` | Update status |
-| GET | `/api/negotiations/:id/messages` | Get messages |
-| POST | `/api/negotiations/:id/messages` | Send message |
-
-### Purchase Intents
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/purchase-intents` | List intents |
-| GET | `/api/purchase-intents/:id` | Get intent details |
-| POST | `/api/purchase-intents` | Create intent |
-| PUT | `/api/purchase-intents/:id` | Update intent |
-| POST | `/api/purchase-intents/:id/submit` | Submit to supplier |
-| POST | `/api/purchase-intents/:id/accept` | Supplier accepts |
-| POST | `/api/purchase-intents/:id/reject` | Supplier rejects |
-
-### Categories
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/categories` | List categories (tree) |
-| GET | `/api/categories/:id` | Get category details |
-| POST | `/api/categories` | Create category (admin) |
-| PUT | `/api/categories/:id` | Update category (admin) |
-
-See full API documentation at `/api/docs` when running the server.
-
-## 🧪 Testing
-
-```bash
-# Run all tests
-npm test
-
-# Run with coverage
-npm run test:coverage
-
-# Run specific test file
-npm test -- --testPathPattern=auth
-
-# E2E tests
-npm run test:e2e
-```
-
-## 🚢 Deployment
-
-### Production Checklist
-
-- [ ] Set `NODE_ENV=production`
-- [ ] Configure strong `JWT_SECRET`
-- [ ] Set up PostgreSQL with SSL
-- [ ] Configure Redis for caching
-- [ ] Set up S3/MinIO for file storage
-- [ ] Configure SMTP for emails
-- [ ] Set up SSL certificates
-- [ ] Configure Nginx reverse proxy
-- [ ] Set up monitoring (health checks)
-- [ ] Configure log aggregation
-- [ ] Set up database backups
-
-### Docker Production
-
-```bash
-# Build images
-docker-compose -f docker-compose.prod.yml build
-
-# Deploy
-docker-compose -f docker-compose.prod.yml up -d
-
-# View logs
-docker-compose -f docker-compose.prod.yml logs -f
-```
-
-### Kubernetes
-
-Helm charts available in `/kubernetes` directory.
-
-```bash
-helm install b2b-marketplace ./kubernetes/helm
-```
-
-## 📊 Monitoring
-
-### Health Checks
-- `GET /health` - Basic health check
-- `GET /health/ready` - Readiness check (DB, Redis)
-- `GET /health/live` - Liveness check
-
-### Metrics
-Prometheus metrics available at `/metrics` endpoint.
-
-## 🔐 Security
-
-- **Authentication**: JWT with refresh token rotation
-- **Authorization**: Role-based access control (RBAC)
-- **Data Protection**: Password hashing with bcrypt (cost 12)
-- **Input Validation**: Zod schema validation
-- **SQL Injection**: Parameterized queries via Prisma
-- **XSS Prevention**: Content Security Policy headers
-- **CSRF Protection**: SameSite cookies
-- **Rate Limiting**: Per-IP and per-user limits
-- **Audit Logging**: All admin actions logged
-
-## 📁 Project Structure
+## 📁 Cấu trúc thư mục
 
 ```
 b2b-marketplace/
 ├── backend/
-│   ├── src/
-│   │   ├── config/         # Configuration files
-│   │   ├── controllers/    # Route handlers
-│   │   ├── middlewares/    # Express middlewares
-│   │   ├── models/         # Prisma schema & types
-│   │   ├── routes/         # API routes
-│   │   ├── services/       # Business logic
-│   │   ├── utils/          # Utility functions
-│   │   ├── jobs/           # Background jobs
-│   │   ├── websocket/      # WebSocket handlers
-│   │   └── index.ts        # Entry point
-│   ├── tests/              # Test files
-│   ├── migrations/         # Database migrations
-│   └── package.json
+│   ├── app/
+│   │   ├── routers/      # API routes
+│   │   ├── main.py       # FastAPI app
+│   │   ├── models.py     # SQLAlchemy models
+│   │   ├── schemas.py    # Pydantic schemas
+│   │   ├── auth.py       # Authentication
+│   │   ├── database.py   # DB connection
+│   │   ├── config.py     # Settings
+│   │   └── seed.py       # Seed data
+│   ├── requirements.txt
+│   └── .env.example
 ├── frontend/
 │   ├── src/
-│   │   ├── components/     # React components
-│   │   ├── pages/          # Page components
-│   │   ├── hooks/          # Custom hooks
-│   │   ├── services/       # API services
-│   │   ├── context/        # React context
-│   │   ├── utils/          # Utility functions
-│   │   └── styles/         # Global styles
-│   ├── public/             # Static assets
-│   └── package.json
-├── docker/                 # Docker configurations
-├── scripts/                # Utility scripts
-├── .github/workflows/      # CI/CD pipelines
-├── docker-compose.yml      # Development compose
-├── docker-compose.prod.yml # Production compose
-└── README.md
+│   │   ├── pages/        # React pages
+│   │   ├── components/   # UI components
+│   │   ├── api/          # API client
+│   │   ├── store/        # Zustand store
+│   │   └── types/        # TypeScript types
+│   ├── package.json
+│   └── vercel.json
+└── render.yaml           # Render blueprint
 ```
 
-## 🤝 Contributing
+## 🚀 Chạy Local
 
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open Pull Request
+### 1. Database (PostgreSQL)
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+```bash
+# Docker
+docker run -d --name b2b-postgres \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  -e POSTGRES_DB=b2b_marketplace \
+  -p 5432:5432 \
+  postgres:16-alpine
+```
 
-## 📄 License
+### 2. Backend
 
-This project is licensed under the MIT License - see [LICENSE](LICENSE) file.
+```bash
+cd backend
 
-## 🙏 Acknowledgments
+# Tạo virtual environment
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
 
-- Built with [Express.js](https://expressjs.com/), [React](https://react.dev/), [PostgreSQL](https://www.postgresql.org/)
-- UI components with [TailwindCSS](https://tailwindcss.com/)
-- Real-time features with [Socket.IO](https://socket.io/)
-- Type safety with [TypeScript](https://www.typescriptlang.org/)
+# Cài dependencies
+pip install -r requirements.txt
+
+# Copy env
+cp .env.example .env
+
+# Seed database
+python -m app.seed
+
+# Chạy server
+uvicorn app.main:app --reload --port 8000
+```
+
+API sẽ chạy tại: http://localhost:8000
+Swagger Docs: http://localhost:8000/docs
+
+### 3. Frontend
+
+```bash
+cd frontend
+
+# Cài dependencies
+npm install
+
+# Copy env
+cp .env.example .env
+
+# Chạy dev server
+npm run dev
+```
+
+Frontend sẽ chạy tại: http://localhost:5173
+
+## 👤 Tài khoản Test
+
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | admin@b2bmarket.com | Admin123! |
+| Supplier | supplier1@techcorp.com | Supplier123! |
+| Shop | shop1@retailplus.com | Shop123! |
+
+## 🌐 Deploy Production
+
+### Backend → Render
+
+#### Cách 1: Dùng Blueprint (Khuyến nghị)
+
+1. Push code lên GitHub
+2. Vào [Render Dashboard](https://dashboard.render.com)
+3. **New** → **Blueprint**
+4. Chọn repo và branch
+5. Render sẽ tự động tạo:
+   - Web Service (FastAPI)
+   - PostgreSQL database
+
+#### Cách 2: Manual Setup
+
+1. **Tạo PostgreSQL Database:**
+   - Dashboard → New → PostgreSQL
+   - Name: `b2b-marketplace-db`
+   - Region: Singapore
+   - Plan: Free
+
+2. **Tạo Web Service:**
+   - Dashboard → New → Web Service
+   - Connect GitHub repo
+   - Root Directory: `backend`
+   - Environment: Python 3
+   - Build Command: `pip install -r requirements.txt && python -m app.seed`
+   - Start Command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+
+3. **Environment Variables:**
+   ```
+   DATABASE_URL=<copy từ PostgreSQL>
+   SECRET_KEY=<tự generate>
+   CORS_ORIGINS=https://your-frontend.vercel.app
+   DEBUG=false
+   ```
+
+### Frontend → Vercel
+
+1. Push code lên GitHub
+2. Vào [Vercel Dashboard](https://vercel.com)
+3. **New Project** → Import repo
+4. Settings:
+   - Framework: Vite
+   - Root Directory: `frontend`
+5. **Environment Variables:**
+   ```
+   VITE_API_URL=https://your-api.onrender.com
+   ```
+6. Deploy!
+
+## 📊 Database Schema
+
+```
+users
+├── id, email, password_hash, full_name, role
+
+suppliers (1-1 with users)
+├── id, user_id, company_name, address, phone, description
+
+shops (1-1 with users)  
+├── id, user_id, shop_name, address, phone
+
+products
+├── id, supplier_id, name, description, price, stock, status, category
+
+rfq (Request for Quotation)
+├── id, shop_id, product_id, quantity, message, status
+
+quotes
+├── id, rfq_id, supplier_id, price, min_order_qty, lead_time, status
+
+negotiations
+├── id, rfq_id, sender_role, sender_id, message, proposed_price
+
+contracts
+├── id, supplier_id, shop_id, product_id, agreed_price, quantity, status
+```
+
+## 🔄 Business Flow
+
+```
+1. Shop tìm sản phẩm trên marketplace
+2. Shop gửi RFQ (Request for Quotation) cho sản phẩm
+3. Supplier nhận RFQ và gửi báo giá (Quote)
+4. Hai bên có thể đàm phán qua Negotiations
+5. Shop chấp nhận Quote → tạo Contract
+6. Admin có thể duyệt sản phẩm trước khi hiển thị
+```
+
+## 📱 API Endpoints
+
+### Authentication
+- `POST /auth/register` - Đăng ký
+- `POST /auth/login` - Đăng nhập (OAuth2)
+- `POST /auth/login/json` - Đăng nhập (JSON)
+- `GET /users/me` - Profile
+
+### Products (Public)
+- `GET /products` - Danh sách sản phẩm
+- `GET /products/{id}` - Chi tiết sản phẩm
+- `GET /products/categories` - Danh mục
+
+### Suppliers
+- `GET /suppliers` - Danh sách
+- `GET /suppliers/{id}` - Chi tiết
+- `GET /suppliers/products` - Sản phẩm của tôi
+- `POST /suppliers/products` - Thêm sản phẩm
+- `POST /suppliers/quotes` - Gửi báo giá
+
+### Shops
+- `GET /shops/products` - Tìm sản phẩm
+- `POST /shops/rfq` - Gửi RFQ
+- `GET /shops/rfq` - RFQ của tôi
+- `POST /shops/contracts` - Tạo hợp đồng
+
+### Admin
+- `GET /admin/stats` - Thống kê
+- `GET /admin/products/pending` - Sản phẩm chờ duyệt
+- `PATCH /admin/products/{id}/approve` - Duyệt sản phẩm
+
+## 🔐 Security Notes
+
+- JWT tokens với expiry 24h
+- Password được hash bằng bcrypt
+- CORS được cấu hình cho từng environment
+- Protected routes theo role
+
+## 📝 License
+
+MIT
