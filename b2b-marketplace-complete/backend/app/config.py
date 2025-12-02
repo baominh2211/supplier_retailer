@@ -4,37 +4,32 @@ import os
 
 class Settings(BaseSettings):
     # Database
-    DATABASE_URL: str = os.getenv(
-        "DATABASE_URL", 
-        "postgresql+asyncpg://postgres:postgres@localhost:5432/b2b_marketplace"
-    )
+    DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/b2b_marketplace"
     
     # JWT
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "your-secret-key-change-in-production-min-32-chars")
+    SECRET_KEY: str = "your-secret-key-change-in-production-min-32-chars"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     
-    # CORS
-    CORS_ORIGINS: List[str] = [
-        "http://localhost:3000",
-        "http://localhost:5173",
-        "https://*.vercel.app",
-    ]
+    # CORS - as string, will be parsed manually
+    CORS_ORIGINS: str = "http://localhost:3000,http://localhost:5173"
     
     # App
-    DEBUG: bool = os.getenv("DEBUG", "false").lower() == "true"
+    DEBUG: bool = False
     
     class Config:
         env_file = ".env"
         extra = "allow"
 
+    def get_cors_origins(self) -> List[str]:
+        """Parse CORS_ORIGINS string to list"""
+        if not self.CORS_ORIGINS:
+            return ["http://localhost:3000", "http://localhost:5173"]
+        return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        # Parse CORS_ORIGINS from environment if string
-        cors_env = os.getenv("CORS_ORIGINS", "")
-        if cors_env:
-            self.CORS_ORIGINS = [origin.strip() for origin in cors_env.split(",")]
         
         # Fix DATABASE_URL for asyncpg (Render uses postgres://)
         if self.DATABASE_URL.startswith("postgres://"):

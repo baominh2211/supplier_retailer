@@ -66,8 +66,9 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSessi
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    access_token = create_access_token(data={"sub": user.id, "role": user.role.value})
-    refresh_token = create_refresh_token(data={"sub": user.id, "role": user.role.value})
+    # Convert user.id to string for JWT
+    access_token = create_access_token(data={"sub": str(user.id), "role": user.role.value})
+    refresh_token = create_refresh_token(data={"sub": str(user.id), "role": user.role.value})
     
     return Token(access_token=access_token, refresh_token=refresh_token)
 
@@ -83,8 +84,9 @@ async def login_json(data: LoginRequest, db: AsyncSession = Depends(get_db)):
             detail="Incorrect email or password"
         )
     
-    access_token = create_access_token(data={"sub": user.id, "role": user.role.value})
-    refresh_token = create_refresh_token(data={"sub": user.id, "role": user.role.value})
+    # Convert user.id to string for JWT
+    access_token = create_access_token(data={"sub": str(user.id), "role": user.role.value})
+    refresh_token = create_refresh_token(data={"sub": str(user.id), "role": user.role.value})
     
     return Token(access_token=access_token, refresh_token=refresh_token)
 
@@ -101,7 +103,8 @@ async def refresh_token(refresh_token: str, db: AsyncSession = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
     
-    access_token = create_access_token(data={"sub": user.id, "role": user.role.value})
-    new_refresh_token = create_refresh_token(data={"sub": user.id, "role": user.role.value})
+    # Convert user.id to string for JWT
+    access_token = create_access_token(data={"sub": str(user.id), "role": user.role.value})
+    new_refresh_token = create_refresh_token(data={"sub": str(user.id), "role": user.role.value})
     
     return Token(access_token=access_token, refresh_token=new_refresh_token)
