@@ -21,6 +21,10 @@ class Settings(BaseSettings):
     SMTP_USER: Optional[str] = None
     SMTP_PASSWORD: Optional[str] = None
     
+    # Resend API (recommended for production)
+    RESEND_API_KEY: Optional[str] = None
+    EMAIL_FROM: Optional[str] = None  # e.g., "B2B Marketplace <noreply@yourdomain.com>"
+    
     # Frontend URL (for email links)
     FRONTEND_URL: str = "http://localhost:5173"
     

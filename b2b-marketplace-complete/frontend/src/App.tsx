@@ -10,6 +10,8 @@ import DashboardLayout from './components/DashboardLayout';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import RegisterSuccessPage from './pages/RegisterSuccessPage';
+import VerifyEmailPage from './pages/VerifyEmailPage';
 import ProductsPage from './pages/ProductsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import SuppliersPage from './pages/SuppliersPage';
@@ -69,6 +71,8 @@ export default function App() {
       {/* Auth Routes */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/register/success" element={<RegisterSuccessPage />} />
+      <Route path="/verify-email" element={<VerifyEmailPage />} />
       
       {/* Supplier Routes */}
       <Route path="/supplier" element={

@@ -18,5 +18,8 @@ pydantic==2.5.3
 pydantic-settings==2.1.0
 email-validator==2.1.0.post1
 
+# HTTP Client (for Resend API)
+httpx==0.26.0
+
 # Utils
 python-dotenv==1.0.0
