@@ -12,6 +12,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import RegisterSuccessPage from './pages/RegisterSuccessPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
+import PendingApprovalPage from './pages/PendingApprovalPage';
 import ProductsPage from './pages/ProductsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import SuppliersPage from './pages/SuppliersPage';
@@ -73,6 +74,7 @@ export default function App() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/register/success" element={<RegisterSuccessPage />} />
       <Route path="/verify-email" element={<VerifyEmailPage />} />
+      <Route path="/pending-approval" element={<PendingApprovalPage />} />
       
       {/* Supplier Routes */}
       <Route path="/supplier" element={
