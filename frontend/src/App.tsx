@@ -22,18 +22,19 @@ import AIPriceSuggestion from './pages/AIPriceSuggestion';
 import SupplierDashboard from './pages/supplier/Dashboard';
 import SupplierProducts from './pages/supplier/Products';
 import SupplierRFQs from './pages/supplier/RFQs';
+import SupplierOrders from './pages/supplier/Orders';
 import SupplierContracts from './pages/supplier/Contracts';
 import SupplierProfile from './pages/supplier/Profile';
 import SupplierAIAssistant from './pages/supplier/AIAssistant';
-import SupplierOrders from './pages/supplier/Orders';
+import SupplierShopList from './pages/supplier/ShopList';
 
 // Shop Pages
 import ShopDashboard from './pages/shop/Dashboard';
 import ShopRFQs from './pages/shop/RFQs';
+import ShopOrders from './pages/shop/Orders';
 import ShopContracts from './pages/shop/Contracts';
 import ShopProfile from './pages/shop/Profile';
 import ShopAIAssistant from './pages/shop/AIAssistant';
-import ShopOrders from './pages/shop/Orders';
 
 // Chat Page
 import ChatPage from './pages/ChatPage';
@@ -103,8 +104,9 @@ export default function App() {
         <Route path="dashboard" element={<SupplierDashboard />} />
         <Route path="products" element={<SupplierProducts />} />
         <Route path="rfq" element={<SupplierRFQs />} />
-        <Route path="contracts" element={<SupplierContracts />} />
         <Route path="orders" element={<SupplierOrders />} />
+        <Route path="contracts" element={<SupplierContracts />} />
+        <Route path="shops" element={<SupplierShopList />} />
         <Route path="profile" element={<SupplierProfile />} />
         <Route path="ai-assistant" element={<SupplierAIAssistant />} />
         <Route path="chat" element={<ChatPage />} />
@@ -120,8 +122,8 @@ export default function App() {
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<ShopDashboard />} />
         <Route path="rfq" element={<ShopRFQs />} />
-        <Route path="contracts" element={<ShopContracts />} />
         <Route path="orders" element={<ShopOrders />} />
+        <Route path="contracts" element={<ShopContracts />} />
         <Route path="profile" element={<ShopProfile />} />
         <Route path="ai-assistant" element={<ShopAIAssistant />} />
         <Route path="chat" element={<ChatPage />} />

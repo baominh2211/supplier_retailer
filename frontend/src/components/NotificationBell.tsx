@@ -143,7 +143,7 @@ export default function NotificationBell() {
     }
   };
 
-  return (
+    return (
     <div className="relative" ref={dropdownRef}>
       <button 
         onClick={handleToggle}
@@ -162,14 +162,22 @@ export default function NotificationBell() {
           {/* Header */}
           <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50">
             <h3 className="font-semibold text-gray-900">Thông báo</h3>
-            {unreadCount > 0 && (
-              <button 
-                onClick={handleMarkAllRead}
-                className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+            <div className="flex items-center gap-2">
+              {unreadCount > 0 && (
+                <button 
+                  onClick={handleMarkAllRead}
+                  className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                >
+                  Đánh dấu đã đọc tất cả
+                </button>
+              )}
+              <button
+                onClick={() => setIsOpen(false)}
+                className="p-1 hover:bg-gray-200 rounded-lg transition"
               >
-                Đánh dấu đã đọc tất cả
+                <X className="w-4 h-4 text-gray-500" />
               </button>
-            )}
+            </div>
           </div>
 
           {/* Notifications List */}

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import { chatApi } from '../../api';
-import { useAuthStore } from '../../store/authStore';
+import { chatApi } from '../api';
+import { useAuthStore } from '../store/authStore';
 import { Send, MessageCircle, User, Building2, Store, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -41,7 +41,8 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const pollInterval = useRef<NodeJS.Timeout | null>(null);
+  // Sửa từ NodeJS.Timeout thành ReturnType<typeof setInterval>
+  const pollInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     fetchRooms();
@@ -89,7 +90,7 @@ export default function ChatPage() {
       setActiveRoom(response.data);
       setMessages(response.data.messages || []);
       if (!silent) {
-        fetchRooms(); // Refresh list to update unread counts
+        fetchRooms();
       }
     } catch (error) {
       console.error(error);

@@ -90,6 +90,7 @@ export const suppliersApi = {
   deleteProduct: (id: number) => api.delete(`/suppliers/me/products/${id}`),
   getQuotes: () => api.get('/suppliers/me/quotes'),
   createQuote: (data: any) => api.post('/suppliers/me/quotes', data),
+  searchShops: (params?: any) => api.get('/suppliers/me/shops', { params }),
 };
 
 // Shops API
@@ -177,14 +178,18 @@ export const uploadApi = {
 // Chat API
 export const chatApi = {
   getRooms: () => api.get('/chat/rooms'),
-  getRoom: (roomId: number) => api.get(`/chat/rooms/${roomId}`),
-  createOrGetRoom: (partnerId: number) => api.post(`/chat/rooms/with/${partnerId}`),
-  sendMessage: (roomId: number, message: string) => api.post(`/chat/rooms/${roomId}/messages`, { message }),
-  getUnreadCount: () => api.get('/chat/unread-count'),
+  getRoom: (id: number) => api.get(`/chat/rooms/${id}`),
+  sendMessage: (roomId: number, message: string) => 
+    api.post(`/chat/rooms/${roomId}/messages`, { message }),
+  // Gọi với user_id của partner
+  createOrGetRoom: (partnerUserId: number) => 
+    api.post(`/chat/rooms/with/${partnerUserId}`),
 };
 
 // Orders API
+// ==================== ORDERS API ====================
 export const ordersApi = {
+   // Orders CRUD
   list: (status?: string) => api.get('/orders', { params: { status } }),
   get: (id: number) => api.get(`/orders/${id}`),
   create: (data: any) => api.post('/orders', data),
@@ -197,8 +202,14 @@ export const ordersApi = {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
   },
-  getMyPaymentInfo: () => api.get('/orders/payment-info/me'),
-  updateMyPaymentInfo: (data: any) => api.put('/orders/payment-info/me', data),
+
+  // Payment Info - Supplier's payment settings
+    getMyPaymentInfo: () => api.get('/orders/payment-info/me'),
+    updateMyPaymentInfo: (data: any) => api.patch('/orders/payment-info/me', data),
+    createMyPaymentInfo: (data: any) => api.post('/orders/payment-info/me', data),
+    getSupplierPaymentInfo: (supplierId: number) => api.get(`/orders/payment-info/${supplierId}`),
+
+// QR Code upload
   uploadQRCode: (file: File) => {
     const formData = new FormData();
     formData.append('file', file);
@@ -206,5 +217,4 @@ export const ordersApi = {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
   },
-  getSupplierPaymentInfo: (supplierId: number) => api.get(`/orders/payment-info/${supplierId}`),
 };

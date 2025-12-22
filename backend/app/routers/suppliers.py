@@ -16,6 +16,52 @@ from app.routers.notifications import create_notification
 
 router = APIRouter()
 
+# ==================== SEARCH SHOPS (cho Supplier) ====================
+@router.get("/me/shops", response_model=List)
+async def search_shops(
+    search: Optional[str] = None,
+    skip: int = 0,
+    limit: int = 50,
+    current_user: User = Depends(get_supplier_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Search shops (for supplier) - returns shops with user info"""
+    query = select(Shop).options(selectinload(Shop.user)).join(Shop.user)
+    
+    # Only approved shops
+    query = query.where(User.is_approved == True)
+    
+    if search:
+        search_term = f"%{search}%"
+        query = query.where(
+            (Shop.shop_name.ilike(search_term)) |
+            (Shop.address.ilike(search_term)) |
+            (Shop.phone.ilike(search_term)) |
+            (User.email.ilike(search_term)) |
+            (User.full_name.ilike(search_term))
+        )
+    
+    query = query.order_by(Shop.created_at.desc()).offset(skip).limit(limit)
+    result = await db.execute(query)
+    shops = result.scalars().all()
+    
+    # Format response
+    return [
+        {
+            "id": shop.id,
+            "shop_name": shop.shop_name,
+            "address": shop.address,
+            "phone": shop.phone,
+            "created_at": shop.created_at,
+            "user": {
+                "id": shop.user.id,
+                "email": shop.user.email,
+                "full_name": shop.user.full_name
+            }
+        }
+        for shop in shops
+    ]
+
 # ==================== SUPPLIER PROFILE (đặt trước /{supplier_id}) ====================
 @router.get("/me", response_model=SupplierResponse)
 async def get_my_profile(
@@ -216,7 +262,7 @@ async def respond_to_rfq(
             await create_notification(
                 db=db,
                 user_id=shop.user_id,
-                type=NotificationType.QUOTE_RECEIVED,
+                notification_type="quote_received",  # <-- SỬA TỪ type= THÀNH notification_type=
                 title="Báo giá mới",
                 message=f"{supplier.company_name} đã gửi báo giá cho {product_name}",
                 link="/shop/rfq"

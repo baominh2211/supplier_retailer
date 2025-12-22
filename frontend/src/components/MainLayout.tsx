@@ -33,7 +33,8 @@ export default function MainLayout() {
             
             {/* Desktop Nav */}
             <nav className="hidden md:flex items-center gap-8">
-              <Link to="/products" className="text-gray-600 hover:text-primary-600 font-medium">
+              <Link to="/products" className="text-gray-600 hover:text-primary-600 font-medium flex items-center gap-2">
+                <ShoppingBag className="w-4 h-4" />
                 Sản phẩm
               </Link>
               <Link to="/suppliers" className="text-gray-600 hover:text-primary-600 font-medium">
@@ -78,7 +79,8 @@ export default function MainLayout() {
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-gray-200 bg-white py-4 px-4 space-y-3">
-            <Link to="/products" className="block text-gray-600 hover:text-primary-600 font-medium py-2">
+            <Link to="/products" className="flex items-center gap-2 text-gray-600 hover:text-primary-600 font-medium py-2">
+              <ShoppingBag className="w-4 h-4" />
               Sản phẩm
             </Link>
             <Link to="/suppliers" className="block text-gray-600 hover:text-primary-600 font-medium py-2">
@@ -129,7 +131,7 @@ export default function MainLayout() {
             <div>
               <h3 className="font-semibold mb-3">Sản phẩm</h3>
               <ul className="space-y-2 text-sm text-gray-400">
-                <li><Link to="/products" className="hover:text-white">Tất cả sản phẩm</Link></li>
+                <li><Link to="/products" className="hover:text-white flex items-center gap-1"><ShoppingBag className="w-3 h-3" /> Tất cả sản phẩm</Link></li>
                 <li><Link to="/suppliers" className="hover:text-white">Nhà cung cấp</Link></li>
               </ul>
             </div>
@@ -149,7 +151,7 @@ export default function MainLayout() {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400">
-            © 2024 B2B Marketplace. All rights reserved.
+            © 2025 B2B Marketplace. All rights reserved.
           </div>
         </div>
       </footer>

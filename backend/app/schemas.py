@@ -259,37 +259,41 @@ class NotificationResponse(BaseModel):
 
 class NotificationUpdate(BaseModel):
     is_read: bool
-
+    
+# ==================== CHAT ====================
 # ==================== CHAT ====================
 class ChatMessageCreate(BaseModel):
-    message: str
+    message: str  # <-- Đổi từ content thành message
+
 
 class ChatMessageResponse(BaseModel):
     id: int
-    chat_room_id: int
+    chat_room_id: int  # <-- Đổi từ room_id thành chat_room_id (khớp với model)
     sender_id: int
-    message: str
-    is_read: bool
+    message: str  # <-- Đổi từ content thành message
+    is_read: bool = False
     created_at: datetime
-    sender: Optional[UserResponse] = None
+    sender: Optional[UserResponse] = None  # Thêm sender info
     
     class Config:
         from_attributes = True
+
 
 class ChatRoomResponse(BaseModel):
     id: int
     supplier_id: int
     shop_id: int
     created_at: datetime
-    updated_at: datetime
+    updated_at: Optional[datetime] = None
     supplier: Optional[SupplierResponse] = None
     shop: Optional[ShopResponse] = None
-    messages: List[ChatMessageResponse] = []
     last_message: Optional[ChatMessageResponse] = None
-    unread_count: int = 0
+    unread_count: Optional[int] = 0
+    messages: Optional[List[ChatMessageResponse]] = []
     
     class Config:
         from_attributes = True
+
 
 # ==================== ORDER ====================
 class OrderCreate(BaseModel):
@@ -297,22 +301,14 @@ class OrderCreate(BaseModel):
     quantity: int = Field(gt=0)
     shipping_address: str
     note: Optional[str] = None
-    payment_method: PaymentMethod = PaymentMethod.BANK_TRANSFER
+    payment_method: Optional[PaymentMethod] = PaymentMethod.BANK_TRANSFER
+
 
 class OrderUpdate(BaseModel):
     status: Optional[OrderStatus] = None
+    shipping_address: Optional[str] = None
     note: Optional[str] = None
 
-class OrderTrackingResponse(BaseModel):
-    id: int
-    order_id: int
-    status: OrderStatus
-    note: Optional[str] = None
-    created_at: datetime
-    user: Optional[UserResponse] = None
-    
-    class Config:
-        from_attributes = True
 
 class OrderResponse(BaseModel):
     id: int
@@ -330,37 +326,56 @@ class OrderResponse(BaseModel):
     payment_proof: Optional[str] = None
     paid_at: Optional[datetime] = None
     created_at: datetime
-    updated_at: datetime
+    updated_at: Optional[datetime] = None
     
     class Config:
         from_attributes = True
 
-class OrderWithDetails(OrderResponse):
-    contract: Optional[ContractResponse] = None
-    supplier: Optional[SupplierResponse] = None
-    shop: Optional[ShopResponse] = None
-    tracking_history: List[OrderTrackingResponse] = []
 
-# ==================== SUPPLIER PAYMENT INFO ====================
-class PaymentInfoCreate(BaseModel):
-    bank_name: Optional[str] = None
-    bank_account: Optional[str] = None
-    account_holder: Optional[str] = None
-
-class PaymentInfoResponse(BaseModel):
+class OrderTrackingResponse(BaseModel):
     id: int
-    supplier_id: int
-    bank_name: Optional[str] = None
-    bank_account: Optional[str] = None
-    account_holder: Optional[str] = None
-    qr_code_url: Optional[str] = None
+    order_id: int
+    status: OrderStatus
+    note: Optional[str] = None
+    updated_by: Optional[int] = None
     created_at: datetime
     
     class Config:
         from_attributes = True
 
+
+class OrderWithDetails(OrderResponse):
+    contract: Optional[dict] = None
+    supplier: Optional[dict] = None
+    shop: Optional[dict] = None
+    tracking_history: Optional[List[OrderTrackingResponse]] = []
+    
+    class Config:
+        from_attributes = True
+
+
+# ==================== PAYMENT INFO ====================
+class PaymentInfoCreate(BaseModel):
+    bank_name: Optional[str] = None
+    bank_account: Optional[str] = None
+    account_holder: Optional[str] = None
+    qr_code_url: Optional[str] = None
+
+
+class PaymentInfoResponse(BaseModel):
+    id: Optional[int] = None
+    supplier_id: Optional[int] = None
+    bank_name: Optional[str] = None
+    bank_account: Optional[str] = None
+    account_holder: Optional[str] = None
+    qr_code_url: Optional[str] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    
+    class Config:
+        from_attributes = True
+        
 # Update forward refs
 UserWithProfile.model_rebuild()
 RFQWithDetails.model_rebuild()
-ChatRoomResponse.model_rebuild()
 OrderWithDetails.model_rebuild()

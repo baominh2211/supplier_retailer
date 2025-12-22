@@ -3,10 +3,11 @@ import { useAuthStore } from '../store/authStore';
 import { 
   Building2, LayoutDashboard, Package, FileText, Users, 
   LogOut, Menu, X, ChevronDown, ShoppingCart, MessageSquare,
-  Settings, Sparkles, Wallet, MessageCircle
+  Settings, Sparkles, Wallet, MessageCircle, Store
 } from 'lucide-react';
 import { useState } from 'react';
 import NotificationBell from './NotificationBell';
+import NotificationDropdown from './NotificationDropdown';
 
 interface DashboardLayoutProps {
   role: 'supplier' | 'shop' | 'admin';
@@ -19,6 +20,7 @@ const navItems = {
     { path: '/supplier/rfq', label: 'Yêu cầu báo giá', icon: MessageSquare },
     { path: '/supplier/contracts', label: 'Hợp đồng', icon: FileText },
     { path: '/supplier/orders', label: 'Đơn hàng', icon: ShoppingCart },
+    { path: '/supplier/shops', label: 'Tìm Shop', icon: Store },
     { path: '/supplier/chat', label: 'Tin nhắn', icon: MessageCircle },
     { path: '/supplier/ai-assistant', label: 'AI Assistant', icon: Sparkles },
     { path: '/web3', label: 'Blockchain', icon: Wallet },
@@ -51,6 +53,7 @@ export default function DashboardLayout({ role }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   
   const items = navItems[role];
   
@@ -100,19 +103,36 @@ export default function DashboardLayout({ role }: DashboardLayoutProps) {
           })}
         </nav>
         
-        {/* User */}
+                {/* User */}
         <div className="p-4 border-t border-gray-800">
-          <div className="flex items-center gap-3 mb-4">
+          <div 
+            className="flex items-center gap-3 mb-4 cursor-pointer hover:bg-gray-800 p-2 rounded-lg"
+            onClick={() => setUserMenuOpen(!userMenuOpen)}
+          >
             <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center font-bold">
               {user?.full_name?.charAt(0) || 'U'}
             </div>
             {sidebarOpen && (
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm truncate">{user?.full_name}</p>
-                <p className="text-xs text-gray-400 truncate">{roleLabels[role]}</p>
-              </div>
+              <>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm truncate">{user?.full_name}</p>
+                  <p className="text-xs text-gray-400 truncate">{roleLabels[role]}</p>
+                </div>
+                <ChevronDown className={`w-4 h-4 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
+              </>
             )}
           </div>
+          {userMenuOpen && sidebarOpen && (
+            <div className="mb-2 space-y-1">
+              <Link 
+                to={`/${role}/profile`}
+                className="flex items-center gap-3 w-full px-4 py-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition"
+              >
+                <Settings className="w-4 h-4" />
+                <span className="text-sm">Cài đặt</span>
+              </Link>
+            </div>
+          )}
           <button
             onClick={handleLogout}
             className="flex items-center gap-3 w-full px-4 py-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition"
@@ -150,7 +170,9 @@ export default function DashboardLayout({ role }: DashboardLayoutProps) {
           </div>
           
           <div className="flex items-center gap-3">
-            <NotificationBell />
+            {/* Notification Dropdown - Thay thế button cũ */}
+                        <NotificationDropdown />
+                        
             <Link to="/" className="btn btn-sm btn-secondary">
               Về trang chủ
             </Link>

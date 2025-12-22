@@ -10,17 +10,12 @@ from app.models import User, Supplier, Shop, Product, RFQ, Quote, Contract, Nego
 from app.auth import get_password_hash
 
 async def seed():
-    # Create tables
+    # Drop all tables and recreate them
     async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
     
     async with AsyncSessionLocal() as db:
-        # Check if data exists
-        result = await db.execute(select(User).limit(1))
-        if result.scalar_one_or_none():
-            print("Database already seeded!")
-            return
-        
         print("Seeding database...")
         
         # Create Admin (auto verified and approved)
@@ -97,17 +92,17 @@ async def seed():
         # Create Products
         products_data = [
             # Tech Corp products
-            {"name": "Laptop Dell XPS 15", "desc": "Laptop cao cấp cho doanh nghiệp", "price": 35000000, "stock": 50, "category": "Điện tử", "supplier_idx": 0, "image": "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400"},
-            {"name": "iPhone 15 Pro", "desc": "Điện thoại flagship Apple", "price": 28000000, "stock": 100, "category": "Điện tử", "supplier_idx": 0, "image": "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400"},
-            {"name": "Samsung Galaxy Tab S9", "desc": "Máy tính bảng Android cao cấp", "price": 18000000, "stock": 75, "category": "Điện tử", "supplier_idx": 0, "image": "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=400"},
+            {"name": "Laptop Dell XPS 15", "desc": "Laptop cao cấp cho doanh nghiệp", "price": 35000000, "stock": 50, "category": "Điện tử", "supplier_idx": 0},
+            {"name": "iPhone 15 Pro", "desc": "Điện thoại flagship Apple", "price": 28000000, "stock": 100, "category": "Điện tử", "supplier_idx": 0},
+            {"name": "Samsung Galaxy Tab S9", "desc": "Máy tính bảng Android cao cấp", "price": 18000000, "stock": 75, "category": "Điện tử", "supplier_idx": 0},
             # Food Co products
-            {"name": "Cà phê Arabica Premium", "desc": "Cà phê nguyên chất 100%", "price": 250000, "stock": 500, "category": "Thực phẩm", "supplier_idx": 1, "image": "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=400"},
-            {"name": "Trà Oolong Đài Loan", "desc": "Trà cao cấp nhập khẩu", "price": 180000, "stock": 300, "category": "Thực phẩm", "supplier_idx": 1, "image": "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400"},
-            {"name": "Nước ép trái cây hữu cơ", "desc": "100% trái cây tự nhiên", "price": 45000, "stock": 1000, "category": "Đồ uống", "supplier_idx": 1, "image": "https://images.unsplash.com/photo-1622597467836-f3285f2131b8?w=400"},
+            {"name": "Cà phê Arabica Premium", "desc": "Cà phê nguyên chất 100%", "price": 250000, "stock": 500, "category": "Thực phẩm", "supplier_idx": 1},
+            {"name": "Trà Oolong Đài Loan", "desc": "Trà cao cấp nhập khẩu", "price": 180000, "stock": 300, "category": "Thực phẩm", "supplier_idx": 1},
+            {"name": "Nước ép trái cây hữu cơ", "desc": "100% trái cây tự nhiên", "price": 45000, "stock": 1000, "category": "Đồ uống", "supplier_idx": 1},
             # Fashion products
-            {"name": "Áo sơ mi nam cao cấp", "desc": "Vải cotton Ai Cập", "price": 850000, "stock": 200, "category": "Thời trang", "supplier_idx": 2, "image": "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=400"},
-            {"name": "Váy đầm nữ công sở", "desc": "Thiết kế Hàn Quốc", "price": 1200000, "stock": 150, "category": "Thời trang", "supplier_idx": 2, "image": "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400"},
-            {"name": "Giày da nam Italy", "desc": "Da bò thật 100%", "price": 2500000, "stock": 80, "category": "Giày dép", "supplier_idx": 2, "image": "https://images.unsplash.com/photo-1614252369475-531eba835eb1?w=400"},
+            {"name": "Áo sơ mi nam cao cấp", "desc": "Vải cotton Ai Cập", "price": 850000, "stock": 200, "category": "Thời trang", "supplier_idx": 2},
+            {"name": "Váy đầm nữ công sở", "desc": "Thiết kế Hàn Quốc", "price": 1200000, "stock": 150, "category": "Thời trang", "supplier_idx": 2},
+            {"name": "Giày da nam Italy", "desc": "Da bò thật 100%", "price": 2500000, "stock": 80, "category": "Giày dép", "supplier_idx": 2},
         ]
         
         created_products = []
@@ -119,7 +114,6 @@ async def seed():
                 price=p["price"],
                 stock=p["stock"],
                 category=p["category"],
-                image_url=p["image"],
                 status=ProductStatus.ACTIVE
             )
             db.add(product)
@@ -149,12 +143,12 @@ async def seed():
             created_rfqs.append(rfq)
         
         # Create Quotes - Supplier báo giá cho RFQ
+        # Create Quotes - Supplier báo giá cho RFQ
         quotes_data = [
-            {"rfq_idx": 0, "supplier_idx": 0, "price": 33000000, "min_qty": 5, "lead_time": "7 ngày", "message": "Giảm giá 5% cho đơn hàng trên 5 máy", "status": QuoteStatus.PENDING},
-            {"rfq_idx": 1, "supplier_idx": 1, "price": 230000, "min_qty": 50, "lead_time": "3 ngày", "message": "Freeship cho đơn trên 50 gói", "status": QuoteStatus.ACCEPTED},
-            {"rfq_idx": 3, "supplier_idx": 0, "price": 26500000, "min_qty": 10, "lead_time": "5 ngày", "message": "Giá sỉ đặc biệt cho đại lý", "status": QuoteStatus.PENDING},
-        ]
-        
+    {"rfq_idx": 0, "supplier_idx": 0, "price": 33000000, "min_qty": 5, "lead_time": 7, "message": "Giảm giá 5% cho đơn hàng trên 5 máy", "status": QuoteStatus.PENDING},
+    {"rfq_idx": 1, "supplier_idx": 1, "price": 230000, "min_qty": 50, "lead_time": 3, "message": "Freeship cho đơn trên 50 gói", "status": QuoteStatus.ACCEPTED},
+    {"rfq_idx": 3, "supplier_idx": 0, "price": 26500000, "min_qty": 10, "lead_time": 5, "message": "Giá sỉ đặc biệt cho đại lý", "status": QuoteStatus.PENDING},
+                    ]
         created_quotes = []
         for q in quotes_data:
             quote = Quote(

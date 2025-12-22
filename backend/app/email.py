@@ -144,74 +144,32 @@ def _build_approval_html(full_name: str, approved: bool, login_url: str, rejecte
 async def send_email_resend(to_email: str, subject: str, html_content: str) -> bool:
     """Send email using Resend API"""
     if not settings.RESEND_API_KEY:
-        print("❌ RESEND_API_KEY not set")
         return False
     
     try:
-        # Get from email - strip any extra spaces
-        from_email = (settings.EMAIL_FROM or "").strip()
-        
-        # Debug log
-        print(f"📧 Resend Debug:")
-        print(f"   API Key: {settings.RESEND_API_KEY[:10]}...")
-        print(f"   From: {from_email}")
-        print(f"   To: {to_email}")
-        
-        # If no custom from email or domain not verified, use Resend's default
-        if not from_email or "resend.dev" not in from_email:
-            # Try with custom domain first, fallback to resend.dev
-            pass
+        # Use verified domain from settings, fallback to bmdtlab.site
+        from_email = settings.EMAIL_FROM or "B2B Marketplace <noreply@bmdtlab.site>"
         
         async with httpx.AsyncClient() as client:
-            payload = {
-                "from": from_email if from_email else "B2B Marketplace <onboarding@resend.dev>",
-                "to": [to_email],
-                "subject": subject,
-                "html": html_content
-            }
-            
-            print(f"   Payload from: {payload['from']}")
-            
             response = await client.post(
                 "https://api.resend.com/emails",
                 headers={
                     "Authorization": f"Bearer {settings.RESEND_API_KEY}",
                     "Content-Type": "application/json"
                 },
-                json=payload,
-                timeout=30.0
+                json={
+                    "from": from_email,
+                    "to": [to_email],
+                    "subject": subject,
+                    "html": html_content
+                }
             )
-            
-            print(f"   Response: {response.status_code}")
             
             if response.status_code == 200:
                 print(f"✅ Email sent to {to_email} via Resend")
                 return True
             else:
-                error_text = response.text
-                print(f"❌ Resend error: {response.status_code} - {error_text}")
-                
-                # If domain error, try with resend.dev default
-                if "domain" in error_text.lower() and "not verified" in error_text.lower():
-                    print("🔄 Retrying with resend.dev default sender...")
-                    payload["from"] = "B2B Marketplace <onboarding@resend.dev>"
-                    
-                    response2 = await client.post(
-                        "https://api.resend.com/emails",
-                        headers={
-                            "Authorization": f"Bearer {settings.RESEND_API_KEY}",
-                            "Content-Type": "application/json"
-                        },
-                        json=payload,
-                        timeout=30.0
-                    )
-                    
-                    if response2.status_code == 200:
-                        print(f"✅ Email sent to {to_email} via Resend (default sender)")
-                        return True
-                    else:
-                        print(f"❌ Resend retry error: {response2.status_code} - {response2.text}")
-                
+                print(f"❌ Resend error: {response.status_code} - {response.text}")
                 return False
     except Exception as e:
         print(f"❌ Resend exception: {e}")

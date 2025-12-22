@@ -6,10 +6,9 @@ from typing import List
 from datetime import date, timedelta
 
 from app.database import get_db
-from app.models import User, Quote, QuoteStatus, RFQ, RFQStatus, Contract, ContractStatus, Shop, Supplier, Notification, NotificationType, Product
+from app.models import User, Quote, QuoteStatus, RFQ, RFQStatus, Contract, ContractStatus, Shop, Supplier
 from app.schemas import QuoteResponse, QuoteWithDetails, QuoteUpdate, ContractResponse
 from app.auth import get_current_user
-from app.routers.notifications import create_notification
 
 router = APIRouter()
 
@@ -146,58 +145,6 @@ async def accept_quote_and_create_contract(
     )
     db.add(contract)
     
-    # Get product name for notification
-    product_result = await db.execute(select(Product).where(Product.id == rfq.product_id))
-    product = product_result.scalar_one_or_none()
-    product_name = product.name if product else "Sản phẩm"
-    
-    # 5. Create notifications
-    # Notify supplier - quote accepted
-    await create_notification(
-        db=db,
-        user_id=quote.supplier.user_id,
-        type=NotificationType.QUOTE_ACCEPTED,
-        title="Báo giá được chấp nhận",
-        message=f"Báo giá của bạn cho {product_name} đã được chấp nhận. Hợp đồng đã được tạo.",
-        link="/supplier/contracts"
-    )
-    
-    # Notify supplier - contract created
-    await create_notification(
-        db=db,
-        user_id=quote.supplier.user_id,
-        type=NotificationType.CONTRACT_CREATED,
-        title="Hợp đồng mới",
-        message=f"Hợp đồng mới cho {product_name} với {shop.shop_name}",
-        link="/supplier/contracts"
-    )
-    
-    # Notify shop - contract created
-    await create_notification(
-        db=db,
-        user_id=current_user.id,
-        type=NotificationType.CONTRACT_CREATED,
-        title="Hợp đồng mới",
-        message=f"Hợp đồng mới cho {product_name} đã được tạo thành công",
-        link="/shop/contracts"
-    )
-    
-    # Notify rejected suppliers
-    for other_quote in other_quotes:
-        other_supplier_result = await db.execute(
-            select(Supplier).where(Supplier.id == other_quote.supplier_id)
-        )
-        other_supplier = other_supplier_result.scalar_one_or_none()
-        if other_supplier:
-            await create_notification(
-                db=db,
-                user_id=other_supplier.user_id,
-                type=NotificationType.QUOTE_REJECTED,
-                title="Báo giá không được chọn",
-                message=f"Báo giá của bạn cho {product_name} không được chọn",
-                link="/supplier/rfq"
-            )
-    
     await db.commit()
     await db.refresh(contract)
     
@@ -229,24 +176,6 @@ async def reject_quote(
         raise HTTPException(status_code=403, detail="Bạn không có quyền từ chối báo giá này")
     
     quote.status = QuoteStatus.REJECTED
-    
-    # Get product name and supplier for notification
-    product_result = await db.execute(select(Product).where(Product.id == quote.rfq.product_id))
-    product = product_result.scalar_one_or_none()
-    product_name = product.name if product else "Sản phẩm"
-    
-    supplier_result = await db.execute(select(Supplier).where(Supplier.id == quote.supplier_id))
-    supplier = supplier_result.scalar_one_or_none()
-    
-    if supplier:
-        await create_notification(
-            db=db,
-            user_id=supplier.user_id,
-            type=NotificationType.QUOTE_REJECTED,
-            title="Báo giá bị từ chối",
-            message=f"Báo giá của bạn cho {product_name} đã bị từ chối",
-            link="/supplier/rfq"
-        )
     
     await db.commit()
     await db.refresh(quote)
